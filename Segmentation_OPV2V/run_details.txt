@@ -1,0 +1,24 @@
+195055 slurm - 50% - 1743728312 ckp
+alien3 - 100%
+195068 - CoBEVT orig - 11 epochs Dynamic IoU: 0.135197
+195108 - 100% - 1743785004 ckp_100
+
+
+ckp 100     - after epoch 9 - Dynamic IoU: 0.070903
+             after epoch 12 - Dynamic IoU: 0.119819
+
+
+Done:
+dyn orig, orig_orig
+dyn chasel hard 100, 80, 60,50,1,10
+dyn chasel soft 80
+
+static orig
+static chasel hard
+static chasel soft
+
+dyn baseline  orig attfuse
+static baseline orig
+
+dyn baseline
+static baseline

@@ -1,0 +1,115 @@
+Dataset locations:
+sub OPV2V : /data/HangQiu/proj/autonet-RL/sub_OPV2V
+OPV2V: /data/HangQiu/data/OPV2V/
+DaiRV2X: /data/HangQiu/data/dair-v2x
+V2V4REal: /data/HangQiu/data/V2V4Real
+
+visualize:
+cd CoBEVT/opv2v
+python opencood/visualization/visialize_camera.py [--scene ${SCENE_NUMBER} --sample ${SAMPLE_NUMBER}]
+
+train: 1 GPU::
+python opencood/tools/train_camera.py --hypes_yaml ${CONFIG_FILE} [--model_dir  ${CHECKPOINT_FOLDER}]
+
+CUDA_LAUNCH_BLOCKING=1 python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml --model_dir  opencood/checkpoints_test
+
+python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_cobevt_fulladapt_dyn_l5_thresh_lagrange/config.yaml --model_dir  opencood/checkpoints_cobevt_fulladapt_dyn_l5_thresh_lagrange
+
+python opencood/tools/train_camera.py --hypes_yaml /data/HangQiu/proj/AutoNetSelection/checkpoints_disconet_cp_curriculum_dyn_epsilon_from_baseTEST/config.yaml --model_dir /data/HangQiu/proj/AutoNetSelection/checkpoints_disconet_cp_curriculum_dyn_epsilon_from_baseTEST
+
+train multiple GPUs:
+CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4  --use_env python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_orig/config.yaml --model_dir  opencood/checkpoints_orig
+CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2  --use_env /home/csgrad/smukh039/miniforge3/envs/cobevt_env/bin/python /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/tools/train_camera.py --hypes_yaml /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/checkpoints_sub100/config.yaml --model_dir  /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/checkpoints_sub100
+CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 \
+    /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/tools/train_camera.py \
+    --hypes_yaml /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/checkpoints_sub100/config.yaml \
+    --model_dir /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/checkpoints_sub100
+
+CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 \
+    /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/tools/train_camera.py \
+    --hypes_yaml /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/checkpoints_test/config.yaml \
+    --model_dir /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/opencood/checkpoints_test
+
+
+test 1 GPU:
+
+python opencood/tools/inference_camera.py --model_dir opencood/checkpoints_100
+python opencood/tools/inference_camera.py --model_dir opencood/checkpoints_orig
+
+python opencood/tools/inference_camera.py --model_dir opencood/checkpoints_test --model_type static
+
+python opencood/tools/merge_dynamic_static.py --dynamic_path /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/evaluation/cobevt_dyn_final_cav1 --static_path /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/evaluation/cobevt_st_cp_EG --output_path /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_merged_images/cobevt_final_Cav1
+
+test with pretrained model:
+
+python opencood/tools/inference_camera.py --model_dir /data/HangQiu/proj/AutoNetSelection/checkpoints_cobevt_dyn_cp50
+python opencood/tools/inference_camera.py --model_dir /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/evaluation/final_cobevt_st  --model_type static
+python opencood/tools/inference_camera.py --model_dir /data/HangQiu/proj/AutoNetSelection/checkpoints_attfuse_fulladapt_dyn_l5_thresh_lagrange
+
+python opencood/tools/eval_models_autonet.py --model_dir /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/cobevt_eval_scripts_st --output_dir /home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/cobevt_eval_scripts_st --model_type static
+
+
+Installation
+
+# Clone repo
+git clone https://github.com/shilpa2301/CoBEVT_AutoNet.git
+
+cd CoBEVT/opv2v
+
+# Setup conda environment
+conda env create -f cobevt_env.yaml 
+
+conda activate cobevt_env
+conda install pytorch==1.11.0 torchvision==0.12.0 cudatoolkit=11.3 -c pytorch
+
+# Install dependencies
+
+python opencood/utils/setup.py build_ext --inplace
+python setup.py develop
+
+pip install shapely --only-binary shapely
+
+
+
+To quickly visualize a single sample of the data:
+
+cd CoBEVT/opv2v
+python opencood/visualization/visialize_camera.py [--scene ${SCENE_NUMBER} --sample ${SAMPLE_NUMBER}]
+scene: The ith scene in the data. Default: 4
+sample: The jth sample in the ith scene. Default: 10
+
+
+Tensorboard on slurm:
+tensorboard --logdir=opencood/checkpoints/
+ssh -L 6006:localhost:6006 smukh039@dune1
+
+batch job:
+sbatch -p cisl --gres=gpu:1 --mem=25g --time=7-0:00:00 run_job.sh
+sbatch -p batch -t 7-00:00:00 run_job.sh
+
+sbatch -p cisl --gres=gpu:2 --mem=20g --time=7-0:00:00 run_job.sh
+source cisl_jobs.sh
+
+srun -p cisl --gres=gpu:1 --mem=12g --time=24:00:00 --pty bash
+
+Apptainer:
+apptainer exec --overlay overlay3.img --nv \
+  --bind /data/HangQiu/data/OPV2V/train:/data/HangQiu/data/OPV2V/train \
+  --bind /data/HangQiu/data/OPV2V/validate:/data/HangQiu/data/OPV2V/validate \
+  --bind /data/HangQiu/data/OPV2V/test:/data/HangQiu/data/OPV2V/test \
+  mmp_latest.sif bash << 'EOF'
+
+ 
+ apptainer exec --overlay overlay.img --nv --bind /data/HangQiu/data/OPV2V/train:/data/HangQiu/data/OPV2V/train --bind /data/HangQiu/data/OPV2V/validate:/data/HangQiu/data/OPV2V/validate --bind /data/HangQiu/data/OPV2V/test:/data/HangQiu/data/OPV2V/test mmp_latest.sif bash << 'EOF'
+
+conda activate cloned_env_name
+pwd
+python3 mmdetection3d/projects/BEVFusion/setup.py develop
+pwd
+cd opv2v/
+python3 opencood/utils/setup.py build_ext --inplace
+
+python3 setup.py develop
+cd ../opv2v
+python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml
+EOF

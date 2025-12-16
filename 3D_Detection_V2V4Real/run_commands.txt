@@ -1,0 +1,27 @@
+python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir  opencood/ckp_test --half
+python opencood/tools/train.py --hypes_yaml opencood/checkpoints_test/config.yaml --model_dir  opencood/checkpoints_test --half
+python opencood/tools/train.py --hypes_yaml /data/HangQiu/proj/AutoNetSelection/v2vr_det_cobevt_baseline/config.yaml --model_dir  /data/HangQiu/proj/AutoNetSelection/v2vr_det_cobevt_baseline --half
+
+Inference: 
+
+python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate [--show_vis] [--show_sequence]
+
+python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
+
+
+Results
+
+Default pretrained model for Cobevt intermediate fusion Detection non compressed:
+The Average Precision at IOU 0.3 is 0.95, The Average Precision at IOU 0.5 is 0.95, The Average Precision at IOU 0.7 is 0.92
+
+Default pretrained model for Cobevt intermediate fusion Detection compressed:
+The Average Precision at IOU 0.3 is 0.93, The Average Precision at IOU 0.5 is 0.93, The Average Precision at IOU 0.7 is 0.91
+
+
+cluster:
+batch job:
+sbatch -p cisl --gres=gpu:2 --mem=25g --time=7-0:00:00 run_job.sh
+sbatch -p batch -t 7-00:00:00 run_job.sh
+sbatch -p cisl --gres=gpu:1 --mem=40g --time=10-0:00:00 run_job.sh
+source cisl_jobs.sh
+srun -p cisl --gres=gpu:1 --mem=12g --time=24:00:00 --pty bash

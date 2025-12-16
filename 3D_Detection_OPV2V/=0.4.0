@@ -1,0 +1,47 @@
+Collecting FuzzyTM
+  Downloading FuzzyTM-2.0.9-py3-none-any.whl (31 kB)
+Collecting pyfume
+  Downloading pyFUME-0.3.4-py3-none-any.whl (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.3/60.3 kB 8.9 MB/s eta 0:00:00
+Requirement already satisfied: pandas in /home/shilpa/anaconda3/lib/python3.10/site-packages (from FuzzyTM) (1.5.3)
+Requirement already satisfied: numpy in /home/shilpa/anaconda3/lib/python3.10/site-packages (from FuzzyTM) (1.23.0)
+Requirement already satisfied: scipy in /home/shilpa/anaconda3/lib/python3.10/site-packages (from FuzzyTM) (1.10.0)
+Requirement already satisfied: python-dateutil>=2.8.1 in /home/shilpa/anaconda3/lib/python3.10/site-packages (from pandas->FuzzyTM) (2.8.2)
+Requirement already satisfied: pytz>=2020.1 in /home/shilpa/anaconda3/lib/python3.10/site-packages (from pandas->FuzzyTM) (2022.7)
+Collecting fst-pso==1.8.1
+  Downloading fst-pso-1.8.1.tar.gz (18 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting simpful==2.12.0
+  Downloading simpful-2.12.0-py3-none-any.whl (24 kB)
+Collecting numpy
+  Downloading numpy-1.24.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 17.3/17.3 MB 11.0 MB/s eta 0:00:00
+Collecting scipy
+  Downloading scipy-1.10.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (34.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 34.4/34.4 MB 10.6 MB/s eta 0:00:00
+Collecting miniful
+  Downloading miniful-0.0.6.tar.gz (2.8 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: six>=1.5 in /home/shilpa/anaconda3/lib/python3.10/site-packages (from python-dateutil>=2.8.1->pandas->FuzzyTM) (1.16.0)
+Building wheels for collected packages: fst-pso, miniful
+  Building wheel for fst-pso (setup.py): started
+  Building wheel for fst-pso (setup.py): finished with status 'done'
+  Created wheel for fst-pso: filename=fst_pso-1.8.1-py3-none-any.whl size=20430 sha256=fffdca9066765ebf9d6b3834f423866fe5e512d5c893442a1927c487b131dd30
+  Stored in directory: /home/shilpa/.cache/pip/wheels/01/02/ee/df0699282986903a384b69aab4413af9efd26b3612b5dccc9e
+  Building wheel for miniful (setup.py): started
+  Building wheel for miniful (setup.py): finished with status 'done'
+  Created wheel for miniful: filename=miniful-0.0.6-py3-none-any.whl size=3513 sha256=a20105a20c45db426e94688b8e6a74310fb7b307f2c07abff779f01bad888f35
+  Stored in directory: /home/shilpa/.cache/pip/wheels/43/aa/48/5c66b931ff013ad19774081aa19656637af5c0cc33b5494b30
+Successfully built fst-pso miniful
+Installing collected packages: numpy, scipy, simpful, miniful, fst-pso, pyfume, FuzzyTM
+  Attempting uninstall: numpy
+    Found existing installation: numpy 1.23.0
+    Uninstalling numpy-1.23.0:
+      Successfully uninstalled numpy-1.23.0
+  Attempting uninstall: scipy
+    Found existing installation: scipy 1.10.0
+    Uninstalling scipy-1.10.0:
+      Successfully uninstalled scipy-1.10.0
+Successfully installed FuzzyTM-2.0.9 fst-pso-1.8.1 miniful-0.0.6 numpy-1.24.4 pyfume-0.3.4 scipy-1.10.1 simpful-2.12.0

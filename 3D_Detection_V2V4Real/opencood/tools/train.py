@@ -1,0 +1,286 @@
+# -*- coding: utf-8 -*-
+# Author: Runsheng Xu <rxx3386@ucla.edu>
+# License: TDG-Attribution-NonCommercial-NoDistrib
+
+
+import argparse
+import os
+import statistics
+
+import torch
+import tqdm
+from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader, DistributedSampler
+
+import opencood.hypes_yaml.yaml_utils as yaml_utils
+from opencood.tools import train_utils
+from opencood.tools import multi_gpu_utils
+from opencood.data_utils.datasets import build_dataset
+# from opencood.tools import train_utils
+#shilpa
+from opencood.tools import train_utils , infrence_utils
+from opencood.utils import eval_utils  
+
+
+def train_parser():
+    parser = argparse.ArgumentParser(description="synthetic data generation")
+    parser.add_argument("--hypes_yaml", type=str, required=True,
+                        help='data generation yaml file needed ')
+    parser.add_argument('--model_dir', default='',
+                        help='Continued training path')
+    parser.add_argument("--half", action='store_true',
+                        help="whether train with half precision.")
+    parser.add_argument('--dist_url', default='env://',
+                        help='url used to set up distributed training')
+    opt = parser.parse_args()
+    return opt
+
+
+def main():
+    opt = train_parser()
+    hypes = yaml_utils.load_yaml(opt.hypes_yaml, opt)
+
+    multi_gpu_utils.init_distributed_mode(opt)
+
+    print('-----------------Dataset Building------------------')
+    opencood_train_dataset = build_dataset(hypes, visualize=False, train=True)
+    opencood_validate_dataset = build_dataset(hypes, visualize=False, train=False)
+
+    #shilpa
+    ## Added for IOU
+    opts = argparse.Namespace(
+        #shilpa train
+        model_dir     = r"/data/HangQiu/proj/AutoNetSelection/v2vr_det_cobevt_autonet",
+        fusion_method = 'intermediate',
+        global_sort_detections = False
+    )
+    hype = yaml_utils.load_yaml(None, opts)
+    opencood_dataset = build_dataset(hype, visualize=True, train=False)
+    data_loader = DataLoader(opencood_dataset,
+                             batch_size=1,
+                             num_workers=16,
+                             collate_fn=opencood_dataset.collate_batch_test,
+                             shuffle=False,
+                             pin_memory=False,
+                             drop_last=False)
+    iou_iter = iter(data_loader)
+    print(f"{len(opencood_dataset)} in validation iou samples found.")
+
+    if opt.distributed:
+        sampler_train = DistributedSampler(opencood_train_dataset)
+        sampler_val = DistributedSampler(opencood_validate_dataset,
+                                         shuffle=False)
+
+        batch_sampler_train = torch.utils.data.BatchSampler(
+            sampler_train, hypes['train_params']['batch_size'], drop_last=True)
+
+        train_loader = DataLoader(opencood_train_dataset,
+                                  batch_sampler=batch_sampler_train,
+                                  num_workers=8,
+                                  collate_fn=opencood_train_dataset.collate_batch_train)
+        val_loader = DataLoader(opencood_validate_dataset,
+                                sampler=sampler_val,
+                                num_workers=8,
+                                collate_fn=opencood_train_dataset.collate_batch_train,
+                                drop_last=False)
+    else:
+        train_loader = DataLoader(opencood_train_dataset,
+                                  batch_size=hypes['train_params']['batch_size'],
+                                  num_workers=8,
+                                  collate_fn=opencood_train_dataset.collate_batch_train,
+                                  shuffle=True,
+                                  pin_memory=False,
+                                  drop_last=True)
+        val_loader = DataLoader(opencood_validate_dataset,
+                                batch_size=hypes['train_params']['batch_size'],
+                                num_workers=8,
+                                collate_fn=opencood_train_dataset.collate_batch_train,
+                                shuffle=False,
+                                pin_memory=False,
+                                drop_last=True)
+
+    print('---------------Creating Model------------------')
+    model = train_utils.create_model(hypes)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # if we want to train from last checkpoint.
+    if opt.model_dir:
+        saved_path = opt.model_dir
+        init_epoch, model = train_utils.load_saved_model(saved_path,
+                                                         model)
+
+    else:
+        init_epoch = 0
+        # if we train the model from scratch, we need to create a folder
+        # to save the model,
+        saved_path = train_utils.setup_train(hypes)
+
+    # we assume gpu is necessary
+    if torch.cuda.is_available():
+        model.to(device)
+    model_without_ddp = model
+
+    if opt.distributed:
+        model = \
+            torch.nn.parallel.DistributedDataParallel(model,
+                                                      device_ids=[opt.gpu],
+                                                      find_unused_parameters=True)
+        model_without_ddp = model.module
+
+    # define the loss
+    criterion = train_utils.create_loss(hypes)
+
+    # optimizer setup
+    optimizer = train_utils.setup_optimizer(hypes, model_without_ddp)
+    # lr scheduler setup
+    num_steps = len(train_loader)
+    scheduler = train_utils.setup_lr_schedular(hypes, optimizer, num_steps)
+
+    # record training
+    writer = SummaryWriter(saved_path)
+
+    # half precision training
+    if opt.half:
+        scaler = torch.cuda.amp.GradScaler()
+
+    print('Training start')
+    epoches = hypes['train_params']['epoches']
+    # used to help schedule learning rate
+
+    for epoch in range(init_epoch, max(epoches, init_epoch)):
+        if hypes['lr_scheduler']['core_method'] != 'cosineannealwarm':
+            scheduler.step(epoch)
+        if hypes['lr_scheduler']['core_method'] == 'cosineannealwarm':
+            scheduler.step_update(epoch * num_steps + 0)
+        for param_group in optimizer.param_groups:
+            print('learning rate %.7f' % param_group["lr"])
+
+        if opt.distributed:
+            sampler_train.set_epoch(epoch)
+
+        pbar2 = tqdm.tqdm(total=len(train_loader), leave=True)
+
+        for i, batch_data in enumerate(train_loader):
+            # the model will be evaluation mode during validation
+            model.train()
+            model.zero_grad()
+            optimizer.zero_grad()
+
+            batch_data = train_utils.to_device(batch_data, device)
+
+            # case1 : late fusion train --> only ego needed,
+            # and ego is random selected
+            # case2 : early fusion train --> all data projected to ego
+            # case3 : intermediate fusion --> ['ego']['processed_lidar']
+            # becomes a list, which containing all data from other cavs
+            # as well
+            if not opt.half:
+                ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch)
+                # first argument is always your output dictionary,
+                # second argument is always your label dictionary.
+                final_loss = criterion(ouput_dict,
+                                       batch_data['ego']['label_dict'], percentage_selected, epoch)
+            else:
+                with torch.cuda.amp.autocast():
+                    ouput_dict, select_threshold, percentage_selected= model(batch_data['ego'], epoch)
+                    final_loss = criterion(ouput_dict,
+                                           batch_data['ego']['label_dict'], percentage_selected, epoch)
+
+            criterion.logging(epoch, i, len(train_loader), writer, pbar=pbar2)
+            pbar2.update(1)
+
+            if not opt.half:
+                final_loss.backward()
+                optimizer.step()
+            else:
+                scaler.scale(final_loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+
+            if hypes['lr_scheduler']['core_method'] == 'cosineannealwarm':
+                scheduler.step_update(epoch * num_steps + i)
+
+        if epoch % hypes['train_params']['save_freq'] == 0:
+            torch.save(model_without_ddp.state_dict(),
+                os.path.join(saved_path, 'net_epoch%d.pth' % (epoch + 1)))
+
+        if epoch % hypes['train_params']['eval_freq'] == 0:
+            valid_ave_loss = []
+            #shilpa autonet
+            percentage_selected_log = []
+
+            #shilpa
+            # Create the dictionary for evaluation.
+            # also store the confidence score for each prediction
+            result_stat = {0.3: {'tp': [], 'fp': [], 'gt': 0, 'score': []},                
+                        0.5: {'tp': [], 'fp': [], 'gt': 0, 'score': []},                
+                        0.7: {'tp': [], 'fp': [], 'gt': 0, 'score': []}}
+
+
+            with torch.no_grad():
+                for i, batch_data in enumerate(val_loader):
+                    model.eval()
+
+                    batch_data = train_utils.to_device(batch_data, device)
+                    ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch)
+
+                    final_loss = criterion(ouput_dict,
+                                           batch_data['ego']['label_dict'], percentage_selected, epoch)
+                    valid_ave_loss.append(final_loss.item())
+                    #shilpa autonet
+                    percentage_selected_log.append(percentage_selected)
+
+                    ## From eval script
+                    ## used of calculating AP@IOU
+                    for i in range(2):
+                        try:
+                            iou_iter_data = next(iou_iter)
+                        except StopIteration: 
+                            iou_iter = iter(data_loader)
+                            iou_iter_data = next(iou_iter)
+                        iou_iter_data = train_utils.to_device(iou_iter_data, device)
+
+                        #shilpa autonet
+                        # pred_box_tensor, pred_score, gt_box_tensor = \
+                        # infrence_utils.inference_intermediate_fusion(iou_iter_data,
+                        #                                             model,
+                        #                                             opencood_dataset)
+                        pred_box_tensor, pred_score, gt_box_tensor = \
+                        infrence_utils.inference_intermediate_fusion(iou_iter_data,
+                                                                    model,
+                                                                    opencood_dataset,epoch)
+                        eval_utils.caluclate_tp_fp(pred_box_tensor,
+                                        pred_score,
+                                        gt_box_tensor,
+                                        result_stat,
+                                        0.5)
+                        eval_utils.caluclate_tp_fp(pred_box_tensor,
+                                                pred_score,
+                                                gt_box_tensor,
+                                                result_stat,
+                                                0.7)
+            eval_utils.eval_final_results(result_stat,
+                                  opts.model_dir)#,
+                                  #opts.global_sort_detections,fromTrain=True,writer=writer,epoch=epoch)
+            valid_ave_loss = statistics.mean(valid_ave_loss)
+            # print('At epoch %d, the validation loss is %f' % (epoch,
+            #                                                   valid_ave_loss))
+            # writer.add_scalar('Validate_Loss', valid_ave_loss, epoch)
+            #shilpa autonet
+            # print(f"Percentage selected log: {percentage_selected_log}")
+            flattened_log = [item[0] for item in percentage_selected_log if isinstance(item, list) and len(item) > 0]
+            # Calculate mean of the flattened list, default to 0.0 if empty
+            avg_percentage_selected = statistics.mean(flattened_log) if flattened_log else 0.0
+            # avg_percentage_selected = statistics.mean(percentage_selected_log)
+            #shilpa autonet
+            # print('At epoch %d, the validation loss is %f' % (epoch,
+            #                                                   valid_ave_loss))
+            print('At epoch %d, the validation loss is %f, channel selection is %f' % (epoch,
+                                                              valid_ave_loss, avg_percentage_selected))
+            writer.add_scalar('Validate_Loss', valid_ave_loss, epoch)
+
+    print('Training Finished, checkpoints saved to %s' % saved_path)
+
+
+if __name__ == '__main__':
+    main()
