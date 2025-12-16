@@ -124,8 +124,8 @@ python coopertrim/visualization/visualize_data.py [--scene ${SCENE_NUMBER} --sam
 
 #### Training on 1 GPU
 
-To train CooperTrim using a single GPU:
-
+To train CooperTrim using a single GPU------
+For Segmentation Task:
 ```bash
 python coopertrim/tools/train_perception.py --hypes_yaml ${CONFIG_FILE} [--model_dir ${CHECKPOINT_FOLDER}]
 ```
@@ -134,6 +134,10 @@ Example:
 
 ```bash
 python coopertrim/tools/train_perception.py --hypes_yaml coopertrim/checkpoints_test/config.yaml --model_dir coopertrim/checkpoints_test
+```
+For Detection tasks:
+```
+python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir  opencood/ckp_test [--half]
 ```
 
 #### Training on Multiple GPUs
@@ -148,12 +152,20 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node
 
 #### Testing on 1 GPU
 
-To test CooperTrim using a single GPU:
-
+To test CooperTrim using a single GPU----------
+For Segmentation Task:
 ```bash
 python coopertrim/tools/inference_perception.py --model_dir coopertrim/checkpoints_test [--model_type static]
 ```
 The evaluation results  will be dumped in the model directory. 
+
+For Detection Tasks:
+```
+
+Inference: 
+
+python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
+```
 
 
 
