@@ -16,13 +16,7 @@ CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framewo
 </p>
 
 ## News:
-- 12/28/2022: OpenCOOD now support multi-gpu training.
-- 12/21/2022: V2XSet (ECCV2022) is supported by OpenCOOD now!
-- 12/16/2022: Both spconv 1.2.1 and spconv 2.x are supported! 
-- 12/04/2022: The log replay tool for OPV2V is online now! With 
-this toolbox, you can 100% replay all the events in the offline dataset and add/change any sensors/groundtruth you
-want to explore the tasks that the origin dataset do not support. Check [here](logreplay/README.md) to see more details.
-- 09/15/2022: So far OpenCOOD has supported several top conference papers, including ECCV,ICRA,CoRL,NeurIPS,WACV! The bottom of this project page lists the detailed information.
+- 12/28/2022: First version of CooperTrim released.
 ## Features
 - Provide easy data API for multiple popular multi-agent perception dataset:
   - [x] [OPV2V [ICRA2022]](https://mobility-lab.seas.ucla.edu/opv2v/)
@@ -79,10 +73,12 @@ Before proceeding with visualization, training, or testing, ensure you have the 
 
 ```bash
 # Clone repo
-git clone https://github.com/user/CooperTrim.git
+git clone https://github.com/shilpa2301/CooperTrim.git
 
 cd CooperTrim
+```
 
+```
 # Setup conda environment
 conda env create -f coopertrim_env.yaml 
 
@@ -152,7 +148,7 @@ We have a series of tutorials to help you understand OpenCOOD more. Please check
 ## Citation
  If you are using our CooperTrim framework for your research, please cite the following paper:
  ```bibtex
-@inproceedings{xu2022opencood,
+@inproceedings{mukh2025coopertrim,
   author = {Shilpa Mukhopadhyay, Amit Roy-Chowdhury, Hang Qiu},
   title = {COOPERTRIM: Adaptive Data Selection for Uncertainty-Aware Cooperative Perception},
   booktitle = {Submitted to 2025 IEEE International Conference on Learning Representations (ICLR)},
