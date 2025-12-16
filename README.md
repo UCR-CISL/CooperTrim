@@ -5,14 +5,17 @@
   <div>&nbsp;</div>
 </div>
 
-[![paper](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
+[![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
 CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framework with <strong>Uncertainty-Guided</strong> intermediate feature selection for autonomous driving.
 
 <p align="center">
-<img src="images/Adaptive_selection.png" width="600" alt="" class="img-responsive">
-<img src="Performance_improvement.png" width="600"  alt="" class="img-responsive">
+<img src="images/Adaptive_selection.png" width="600" alt="">
+</p>
+
+<p align="center">
+<img src="Performance_improvement.png" width="600"  alt="">
 </p>
 
 ## News:
@@ -77,12 +80,25 @@ git clone https://github.com/shilpa2301/CooperTrim.git
 
 cd CooperTrim
 ```
-
+Go to any folder of interest : Segmentation_OPV2V / 3D_Detection_OPV2V / 3D_Detection_V2V4Real. 
+#### For Segmentation_OPV2V:
 ```
 # Setup conda environment
-conda env create -f coopertrim_env.yaml 
+conda env create -f cobevt_env.yaml
+```
+#### For 3D_Detection_OPV2V:
+```
+# Setup conda environment
+conda env create -f opencood_env.yaml
+```
+#### For 3D_Detection_V2V4Real:
+```
+# Setup conda environment
+conda env create -f opencood_env.yaml
+```
 
-conda activate coopertrim_env
+```
+conda activate {particular}_env
 conda install pytorch==1.11.0 torchvision==0.12.0 cudatoolkit=11.3 -c pytorch
 
 # Install dependencies
