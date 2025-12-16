@@ -161,9 +161,6 @@ The evaluation results  will be dumped in the model directory.
 
 For Detection Tasks:
 ```
-
-Inference: 
-
 python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
 ```
 
