@@ -19,7 +19,7 @@ CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framewo
 </p>
 
 ## News:
-- 12/28/2022: First version of CooperTrim released.
+- 12/20/2025: First version of CooperTrim released.
 ## Features
 - Provide easy data API for multiple popular multi-agent perception dataset:
   - [x] [OPV2V [ICRA2022]](https://mobility-lab.seas.ucla.edu/opv2v/)
