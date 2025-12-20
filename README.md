@@ -5,24 +5,21 @@
   <div>&nbsp;</div>
 </div>
 
-[![paper](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
+[![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
 CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framework with <strong>Uncertainty-Guided</strong> intermediate feature selection for autonomous driving.
 
 <p align="center">
-<img src="images/Adaptive_selection.png" width="600" alt="" class="img-responsive">
-<img src="Performance_improvement.png" width="600"  alt="" class="img-responsive">
+<img src="images/Adaptive_selection.png" width="600" alt="">
+</p>
+
+<p align="center">
+<img src="Performance_improvement.png" width="600"  alt="">
 </p>
 
 ## News:
-- 12/28/2022: OpenCOOD now support multi-gpu training.
-- 12/21/2022: V2XSet (ECCV2022) is supported by OpenCOOD now!
-- 12/16/2022: Both spconv 1.2.1 and spconv 2.x are supported! 
-- 12/04/2022: The log replay tool for OPV2V is online now! With 
-this toolbox, you can 100% replay all the events in the offline dataset and add/change any sensors/groundtruth you
-want to explore the tasks that the origin dataset do not support. Check [here](logreplay/README.md) to see more details.
-- 09/15/2022: So far OpenCOOD has supported several top conference papers, including ECCV,ICRA,CoRL,NeurIPS,WACV! The bottom of this project page lists the detailed information.
+- 12/28/2022: First version of CooperTrim released.
 ## Features
 - Provide easy data API for multiple popular multi-agent perception dataset:
   - [x] [OPV2V [ICRA2022]](https://mobility-lab.seas.ucla.edu/opv2v/)
@@ -79,14 +76,29 @@ Before proceeding with visualization, training, or testing, ensure you have the 
 
 ```bash
 # Clone repo
-git clone https://github.com/user/CooperTrim.git
+git clone https://github.com/shilpa2301/CooperTrim.git
 
 cd CooperTrim
-
+```
+Go to any folder of interest : Segmentation_OPV2V / 3D_Detection_OPV2V / 3D_Detection_V2V4Real. 
+#### For Segmentation_OPV2V:
+```
 # Setup conda environment
-conda env create -f coopertrim_env.yaml 
+conda env create -f cobevt_env.yaml
+```
+#### For 3D_Detection_OPV2V:
+```
+# Setup conda environment
+conda env create -f opencood_env.yaml
+```
+#### For 3D_Detection_V2V4Real:
+```
+# Setup conda environment
+conda env create -f opencood_env.yaml
+```
 
-conda activate coopertrim_env
+```
+conda activate {particular}_env
 conda install pytorch==1.11.0 torchvision==0.12.0 cudatoolkit=11.3 -c pytorch
 
 # Install dependencies
@@ -112,8 +124,8 @@ python coopertrim/visualization/visualize_data.py [--scene ${SCENE_NUMBER} --sam
 
 #### Training on 1 GPU
 
-To train CooperTrim using a single GPU:
-
+To train CooperTrim using a single GPU------
+For Segmentation Task:
 ```bash
 python coopertrim/tools/train_perception.py --hypes_yaml ${CONFIG_FILE} [--model_dir ${CHECKPOINT_FOLDER}]
 ```
@@ -122,6 +134,10 @@ Example:
 
 ```bash
 python coopertrim/tools/train_perception.py --hypes_yaml coopertrim/checkpoints_test/config.yaml --model_dir coopertrim/checkpoints_test
+```
+For Detection tasks:
+```
+python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir  opencood/ckp_test [--half]
 ```
 
 #### Training on Multiple GPUs
@@ -136,12 +152,17 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node
 
 #### Testing on 1 GPU
 
-To test CooperTrim using a single GPU:
-
+To test CooperTrim using a single GPU----------
+For Segmentation Task:
 ```bash
 python coopertrim/tools/inference_perception.py --model_dir coopertrim/checkpoints_test [--model_type static]
 ```
 The evaluation results  will be dumped in the model directory. 
+
+For Detection Tasks:
+```
+python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
+```
 
 
 
@@ -152,7 +173,7 @@ We have a series of tutorials to help you understand OpenCOOD more. Please check
 ## Citation
  If you are using our CooperTrim framework for your research, please cite the following paper:
  ```bibtex
-@inproceedings{xu2022opencood,
+@inproceedings{mukh2025coopertrim,
   author = {Shilpa Mukhopadhyay, Amit Roy-Chowdhury, Hang Qiu},
   title = {COOPERTRIM: Adaptive Data Selection for Uncertainty-Aware Cooperative Perception},
   booktitle = {Submitted to 2025 IEEE International Conference on Learning Representations (ICLR)},
