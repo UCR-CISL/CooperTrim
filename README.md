@@ -121,6 +121,7 @@ python coopertrim/visualization/visualize_data.py [--scene ${SCENE_NUMBER} --sam
 - **sample**: The jth sample in the ith scene. Default: 10
 
 ### Training
+Before training, the correct config file needs to be placed in the --model_dir folder (eg. checkpoints_test). The configs are available in configs_folder. Select the config as per training need, copy and paste it to the folder referenced by --model_dir. Rename the file to "config.yaml". 
 
 #### Training on 1 GPU
 
