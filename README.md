@@ -41,14 +41,15 @@ CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framewo
     - [x] [Cooper [ICDCS]](https://arxiv.org/abs/1905.05265)
     - [x] [F-Cooper [SEC2019]](https://arxiv.org/abs/1909.06459)
     - [x] [V2VNet [ECCV2022]](https://arxiv.org/abs/2008.07519)
-    - [x] [CoAlign (fusion only) [ICRA2023]](https://arxiv.org/abs/2211.07214)
-    - [x] [FPV-RCNN [RAL2022]](https://arxiv.org/pdf/2109.11615.pdf)
+    - [ ] [CoAlign (fusion only) [ICRA2023]](https://arxiv.org/abs/2211.07214)
+    - [ ] [FPV-RCNN [RAL2022]](https://arxiv.org/pdf/2109.11615.pdf)
     - [x] [DiscoNet [NeurIPS2021]](https://arxiv.org/abs/2111.00643)
-    - [x] [V2X-ViT [ECCV2022]](https://github.com/DerrickXuNu/v2x-vit)
+    - [ ] [V2X-ViT [ECCV2022]](https://github.com/DerrickXuNu/v2x-vit)
     - [x] [CoBEVT [CoRL2022]](https://arxiv.org/abs/2207.02202)  
     - [ ] [AdaFusion [WACV2023]](https://arxiv.org/abs/2208.00116)  
     - [x] [Where2comm [NeurIPS2022]](https://arxiv.org/abs/2209.12836)
-    - [x] [V2VAM [TIV2023]](https://arxiv.org/abs/2212.08273) 
+    - [ ] [V2VAM [TIV2023]](https://arxiv.org/abs/2212.08273)
+    - [x] [SwissCheese [TIV2024]](https://ieeexplore.ieee.org/document/10732008) 
 
 - **Provide a convenient log replay toolbox for OPV2V dataset.** Check [here](logreplay/README.md) to see more details.
 
