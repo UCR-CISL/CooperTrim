@@ -8,7 +8,7 @@
 [![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
-CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framework with <strong>Uncertainty-Guided</strong> intermediate feature selection for autonomous driving.
+CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framework with <strong>Uncertainty-Guided Adaptive</strong> intermediate feature selection for autonomous driving.
 
 <p align="center">
 <img src="images/Adaptive_selection.png" width="600" alt="">
