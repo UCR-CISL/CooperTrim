@@ -11,10 +11,12 @@ class VanillaSegLoss(nn.Module):
         self.d_weights = args['d_weights']
         self.s_weights = args['s_weights']
         self.l_weights = 50 if 'l_weights' not in args else args['l_weights']
-
+        
         self.d_coe = args['d_coe']
         self.s_coe = args['s_coe']
         self.target = args['target']
+        #shilpa select threshold
+        self.select_channel_wt = args['select_channel_wt'] if 'select_channel_wt' in args else 0.01
 
         #shilpa cuda
         self.loss_func_static = \
@@ -26,9 +28,12 @@ class VanillaSegLoss(nn.Module):
                 #shilpa cuda
                 weight=torch.Tensor([1., self.d_weights]).cuda())
 
+
         self.loss_dict = {}
 
-    def forward(self, output_dict, gt_dict):
+    #shilpa select threshold
+    # def forward(self, output_dict, gt_dict):
+    def forward(self, output_dict, gt_dict, percentage_selected, epoch):    
         """
         Perform loss function on the prediction.
 
@@ -71,10 +76,41 @@ class VanillaSegLoss(nn.Module):
             static_pred = rearrange(static_pred, 'b l c h w -> (b l) c h w')
             static_loss = self.loss_func_static(static_pred, static_gt)
 
-        total_loss = self.s_coe * static_loss + self.d_coe * dynamic_loss
+   
+       #l5
+       #shilpa epsilon greedy
+        # if epoch % 10 == 0:
+        #     # Dynamically scale the weight based on the percentage_selected
+        #     # Scale select_channel_wt exponentially or linearly based on percentage_selected
+        #     scaling_factor = percentage_selected / 100.0  # Normalize percentage to [0, 1]
+        #     select_channel_wt = self.select_channel_wt * (2 ** scaling_factor)  # Exponential scaling
+        # else:
+          
+        #     select_channel_wt = self.select_channel_wt * (1 + 0.1 * (epoch // 10))  # Linear growth
+
+        ft_epoch_count = 20
+        if epoch <= ft_epoch_count:
+            select_channel_wt = 0.0        
+        elif epoch % 10 == 0:
+            # Dynamically scale the weight based on the percentage_selected
+            # Scale select_channel_wt exponentially or linearly based on percentage_selected
+            scaling_factor = percentage_selected / 100.0  # Normalize percentage to [0, 1]
+            select_channel_wt = self.select_channel_wt * (2 ** scaling_factor)  # Exponential scaling
+        else:
+          
+            select_channel_wt = self.select_channel_wt * (1 + 0.1 * ((epoch-ft_epoch_count) // 10))  # Linear growth
+
+
+     
+        # print(f"Epoch: {epoch}, Select Channel Weight: {select_channel_wt}")
+        #shilpa lagrange loss L5
+        total_loss = self.s_coe * static_loss + self.d_coe * dynamic_loss + select_channel_wt * (percentage_selected-4.0) # (1/(L1+L2))
+        #shilpa thresh loss L5
+        # total_loss = self.s_coe * static_loss + self.d_coe * dynamic_loss + select_channel_wt * percentage_selected
         self.loss_dict.update({'total_loss': total_loss,
                                'static_loss': static_loss,
                                'dynamic_loss': dynamic_loss})
+
 
         return total_loss
 

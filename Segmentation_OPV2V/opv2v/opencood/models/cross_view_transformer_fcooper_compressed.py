@@ -7,12 +7,14 @@ from einops import rearrange
 from opencood.models.sub_modules.cvt_modules import CrossViewModule
 from opencood.models.backbones.resnet_ms import ResnetEncoder
 from opencood.models.sub_modules.naive_decoder import NaiveDecoder
-from opencood.models.base_transformer import BaseTransformer
+from opencood.models.fusion_modules.f_cooper_fuse import SpatialFusionMask
 from opencood.models.sub_modules.fuse_utils import regroup
 from opencood.models.sub_modules.torch_transformation_utils import \
     get_transformation_matrix, warp_affine, get_roi_and_cav_mask, \
     get_discretized_transformation_matrix
 from opencood.models.sub_modules.bev_seg_head import BevSegHead
+#shilpa fcooper compress
+from opencood.models.sub_modules.naive_compress import NaiveCompressor
 
 
 class STTF(nn.Module):
@@ -60,9 +62,9 @@ class STTF(nn.Module):
         return x
 
 
-class CrossViewTransformerAttFuse(nn.Module):
+class CrossViewTransformerFcooper(nn.Module):
     def __init__(self, config):
-        super(CrossViewTransformerAttFuse, self).__init__()
+        super(CrossViewTransformerFcooper, self).__init__()
         self.max_cav = config['max_cav']
         # encoder params
         self.encoder = ResnetEncoder(config['encoder'])
@@ -72,6 +74,13 @@ class CrossViewTransformerAttFuse(nn.Module):
         cvm_params['backbone_output_shape'] = self.encoder.output_shapes
         self.cvm = CrossViewModule(cvm_params)
 
+        #shilpa fcooper compress
+        if config['compression'] > 0:
+            self.compression = True
+            self.naive_compressor = NaiveCompressor(128, config['compression'])
+        else:
+            self.compression = False
+
         # spatial feature transform module
         self.downsample_rate = config['sttf']['downsample_rate']
         self.discrete_ratio = config['sttf']['resolution']
@@ -79,7 +88,7 @@ class CrossViewTransformerAttFuse(nn.Module):
         self.sttf = STTF(config['sttf'])
 
         # spatial fusion
-        self.fusion_net = BaseTransformer(config['base_transformer'])
+        self.fusion_net = SpatialFusionMask()
 
         # decoder params
         decoder_params = config['decoder']
@@ -90,11 +99,8 @@ class CrossViewTransformerAttFuse(nn.Module):
         self.seg_head = BevSegHead(self.target,
                                    config['seg_head_dim'],
                                    config['output_class'])
-        
-        #shilpa prev feature for uncertainty improvement
-        self.prev_fused_feature = None
 
-    def forward(self, batch_dict, epoch):
+    def forward(self, batch_dict):
         x = batch_dict['inputs']
         b, l, m, _, _, _ = x.shape
 
@@ -104,37 +110,19 @@ class CrossViewTransformerAttFuse(nn.Module):
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-        #shilpa channel entropy
-        # x = self.cvm(batch_dict)
-        orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.cvm(batch_dict, epoch, self.prev_fused_feature)
-        # orig_bev_data_from_all_cav, selected_indices = self.cvm(batch_dict)
-        
-        x = orig_bev_data_from_all_cav
-        x, _ = regroup(x, record_len, self.max_cav)
-        x = self.sttf(x, transformation_matrix)
-        x = rearrange(x, 'b l h w c -> b l c h w')
-        n, c, h, w = orig_bev_data_from_all_cav.shape
-        max_cav = x.shape[1]  # max_cav = 5 (from x.shape)
-        batch_size = x.shape[0]
-        # print(f"x.device: {x.device}, orig_bev_data_from_all_cav.device: {orig_bev_data_from_all_cav.device}, selected_indices.device: {selected_indices.device}")
-        selected_output_values = torch.zeros(batch_size, max_cav, selected_indices.shape[0], h, w, device=x.device) 
-        for idx, value in enumerate(selected_indices):
-                # Use advanced indexing to copy values
-                selected_output_values[:, :, idx, :,:] = x[:, :, value, :,:].clone()
+        x = self.cvm(batch_dict)
 
-        cav_id_0_data = orig_bev_data_from_all_cav[batch_dict['ego_mat_index'][0]]  # Shape: [128, 32, 32]
-        # # # Step 2: Replicate cav_id=0 data across all CAVs
-        replicated_data = cav_id_0_data.unsqueeze(0).expand(n, -1, -1, -1)  # Shape: [5, 128, 32, 32]
-        replicated_data = replicated_data.unsqueeze(0).expand(1, -1, -1, -1, -1)  # Shape: [1, 5, 128, 32, 32]
-        selected_output_values_k = selected_output_values[:, :n, :, :]  # Shape: [1, k, 128, 307]
-        replicated_data = replicated_data.clone()
-        replicated_data[:, :, selected_indices, :, :] = selected_output_values_k[:, :, :len(selected_indices), :, :]
-        replicated_data=replicated_data.squeeze(0)
-        x = replicated_data
+        # B*L, C, H, W
+        x = x.squeeze(1)
+
+        #shilpa fcooper compress
+        if self.compression:
+            x = self.naive_compressor(x)
 
         # Reformat to (B, max_cav, C, H, W)
         x, mask = regroup(x, record_len, self.max_cav)
-        x = rearrange(x, 'b l c h w -> b l h w c')
+        # perform feature spatial transformation,  B, max_cav, H, W, C
+        x = self.sttf(x, transformation_matrix)
         com_mask = mask.unsqueeze(1).unsqueeze(2).unsqueeze(
             3) if not self.use_roi_mask \
             else get_roi_and_cav_mask(x.shape,
@@ -143,13 +131,10 @@ class CrossViewTransformerAttFuse(nn.Module):
                                       self.discrete_ratio,
                                       self.downsample_rate)
 
-        # x = rearrange(x, 'b l h w c -> b l c h w')
         # fuse all agents together to get a single bev map, b h w c
-        x = self.fusion_net(x, com_mask)
-       
+        x = self.fusion_net(x)
         x = x.unsqueeze(1).permute(0, 1, 4, 2, 3)
-        #shilpa prev feature for uncertainty improvement
-        self.prev_fused_feature = x.squeeze(0).squeeze(0).clone()
+
         # dynamic head
         x = self.decoder(x)
         x = rearrange(x, 'b l c h w -> (b l) c h w')
@@ -157,32 +142,4 @@ class CrossViewTransformerAttFuse(nn.Module):
         b = x.shape[0]
         output_dict = self.seg_head(x, b, 1)
 
-        return output_dict, select_threhold, percentage_selected
-        # return output_dict
-
-
-if __name__ == '__main__':
-    import os
-    import torch
-    from opencood.hypes_yaml.yaml_utils import load_yaml
-
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-
-    test_data = torch.rand(1, 1, 4, 512, 512, 3)
-    test_data = test_data.cuda()
-
-    extrinsic = torch.rand(1, 1, 4, 4, 4)
-    intrinsic = torch.rand(1, 1, 4, 3, 3)
-
-    extrinsic = extrinsic.cuda()
-    intrinsic = intrinsic.cuda()
-
-    params = load_yaml('../hypes_yaml/opcamera/cvt.yaml')
-
-    model = CrossViewTransformerAttFuse(params['model']['args'])
-    model = model.cuda()
-    while True:
-        output = model({'inputs': test_data,
-                        'extrinsic': extrinsic,
-                        'intrinsic': intrinsic})
-        print('test_passed')
+        return output_dict

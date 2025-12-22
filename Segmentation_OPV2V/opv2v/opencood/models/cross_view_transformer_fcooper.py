@@ -13,8 +13,6 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_transformation_matrix, warp_affine, get_roi_and_cav_mask, \
     get_discretized_transformation_matrix
 from opencood.models.sub_modules.bev_seg_head import BevSegHead
-#shilpa fcooper compress
-from opencood.models.sub_modules.naive_compress import NaiveCompressor
 
 
 class STTF(nn.Module):
@@ -74,13 +72,6 @@ class CrossViewTransformerFcooper(nn.Module):
         cvm_params['backbone_output_shape'] = self.encoder.output_shapes
         self.cvm = CrossViewModule(cvm_params)
 
-        #shilpa fcooper compress
-        if config['compression'] > 0:
-            self.compression = True
-            self.naive_compressor = NaiveCompressor(128, config['compression'])
-        else:
-            self.compression = False
-
         # spatial feature transform module
         self.downsample_rate = config['sttf']['downsample_rate']
         self.discrete_ratio = config['sttf']['resolution']
@@ -99,8 +90,11 @@ class CrossViewTransformerFcooper(nn.Module):
         self.seg_head = BevSegHead(self.target,
                                    config['seg_head_dim'],
                                    config['output_class'])
+        #shilpa prev feature for uncertainty improvement
+        self.prev_fused_feature = None
 
-    def forward(self, batch_dict):
+
+    def forward(self, batch_dict, epoch):
         x = batch_dict['inputs']
         b, l, m, _, _, _ = x.shape
 
@@ -110,19 +104,58 @@ class CrossViewTransformerFcooper(nn.Module):
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-        x = self.cvm(batch_dict)
+        #shilpa channel entropy
+        # x = self.cvm(batch_dict)
+        # orig_bev_data_from_all_cav, selected_indices= self.cvm(batch_dict)
+        orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.cvm(batch_dict, epoch, self.prev_fused_feature)
+        
+        x = orig_bev_data_from_all_cav
 
-        # B*L, C, H, W
-        x = x.squeeze(1)
+        #shilpa max_cav change
+        # Number of records to keep
+        # k = 1
+        # if x.shape[0] > k:
+        #     # Truncate the tensor to keep only the first k records
+        #     x = x[:k]
+        #     # Update record_len to reflect the new number of records
+        #     record_len = torch.tensor([k], device=x.device)
 
-        #shilpa fcooper compress
-        if self.compression:
-            x = self.naive_compressor(x)
+        x, _ = regroup(x, record_len, self.max_cav)
+
+        #shilpa max_cav change
+        # identity_matrix = torch.eye(4)  # 4x4 identity matrix
+        # transformation_matrix[0, k:] = identity_matrix
+
+        x = self.sttf(x, transformation_matrix)
+        x = rearrange(x, 'b l h w c -> b l c h w')
+        n, c, h, w = orig_bev_data_from_all_cav.shape
+
+        #shilpa max_cav change
+        # n = record_len.item()
+
+        max_cav = x.shape[1]  # max_cav = 5 (from x.shape)
+        batch_size = x.shape[0]
+        # print(f"x.device: {x.device}, orig_bev_data_from_all_cav.device: {orig_bev_data_from_all_cav.device}, selected_indices.device: {selected_indices.device}")
+        selected_output_values = torch.zeros(batch_size, max_cav, selected_indices.shape[0], h, w, device=x.device) 
+        for idx, value in enumerate(selected_indices):
+                # Use advanced indexing to copy values
+                selected_output_values[:, :, idx, :,:] = x[:, :, value, :,:].clone()
+
+        cav_id_0_data = orig_bev_data_from_all_cav[batch_dict['ego_mat_index'][0]]  # Shape: [128, 32, 32]
+        # # # Step 2: Replicate cav_id=0 data across all CAVs
+        replicated_data = cav_id_0_data.unsqueeze(0).expand(n, -1, -1, -1)  # Shape: [5, 128, 32, 32]
+        replicated_data = replicated_data.unsqueeze(0).expand(1, -1, -1, -1, -1)  # Shape: [1, 5, 128, 32, 32]
+        selected_output_values_k = selected_output_values[:, :n, :, :]  # Shape: [1, k, 128, 307]
+        replicated_data = replicated_data.clone()
+        replicated_data[:, :, selected_indices, :, :] = selected_output_values_k[:, :, :len(selected_indices), :, :]
+        replicated_data=replicated_data.squeeze(0)
+        x = replicated_data
 
         # Reformat to (B, max_cav, C, H, W)
         x, mask = regroup(x, record_len, self.max_cav)
-        # perform feature spatial transformation,  B, max_cav, H, W, C
-        x = self.sttf(x, transformation_matrix)
+        x = rearrange(x, 'b l c h w -> b l h w c')
+
+
         com_mask = mask.unsqueeze(1).unsqueeze(2).unsqueeze(
             3) if not self.use_roi_mask \
             else get_roi_and_cav_mask(x.shape,
@@ -135,6 +168,9 @@ class CrossViewTransformerFcooper(nn.Module):
         x = self.fusion_net(x)
         x = x.unsqueeze(1).permute(0, 1, 4, 2, 3)
 
+        #shilpa prev feature for uncertainty improvement
+        self.prev_fused_feature = x.squeeze(0).squeeze(0).clone()
+
         # dynamic head
         x = self.decoder(x)
         x = rearrange(x, 'b l c h w -> (b l) c h w')
@@ -142,4 +178,5 @@ class CrossViewTransformerFcooper(nn.Module):
         b = x.shape[0]
         output_dict = self.seg_head(x, b, 1)
 
-        return output_dict
+        # return output_dict
+        return output_dict, select_threhold, percentage_selected

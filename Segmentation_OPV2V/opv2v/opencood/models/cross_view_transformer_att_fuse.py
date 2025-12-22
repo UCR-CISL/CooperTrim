@@ -14,11 +14,6 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_discretized_transformation_matrix
 from opencood.models.sub_modules.bev_seg_head import BevSegHead
 
-#shilpa compression
-import zlib
-import csv
-import os
-import numpy as np
 
 class STTF(nn.Module):
     def __init__(self, args):
@@ -95,156 +90,11 @@ class CrossViewTransformerAttFuse(nn.Module):
         self.seg_head = BevSegHead(self.target,
                                    config['seg_head_dim'],
                                    config['output_class'])
+        
+        #shilpa prev feature for uncertainty improvement
+        self.prev_fused_feature = None
 
-    #shilpa rebuttal compression
-    def quantize_tensor(self, tensor, factor):
-        """
-        Reduce precision of tensor values for lossy compression with a more aggressive approach.
-        Higher factor means more aggressive quantization (more lossy).
-        """
-        # Check if tensor is empty
-        if tensor.numel() == 0:
-            return tensor  # Return unchanged if empty
-        
-        # Determine the range of tensor values to map quantization effectively
-        tensor_min = tensor.min()
-        tensor_max = tensor.max()
-        value_range = tensor_max - tensor_min
-        
-        if value_range == 0:  # Avoid division by zero if all values are the same
-            return tensor
-        
-        # Calculate quantization levels based on factor (more aggressive reduction)
-        quantization_levels = max(2, int(256 / (factor ** 0.5)))  # Adjusted to be more aggressive
-        if quantization_levels < 2:
-            quantization_levels = 2
-        
-        # Normalize tensor to [0, quantization_levels], round, and scale back to original range
-        normalized = (tensor - tensor_min) / value_range * (quantization_levels - 1)
-        quantized = torch.round(normalized)
-        dequantized = quantized / (quantization_levels - 1) * value_range + tensor_min
-        
-        return dequantized
-
-
-    # Function to compress the tensor (lossless or lossy based on mode)
-    def compress_tensor(self, tensor, compression_factor=None, mode='lossless'):
-        """
-        Compress tensor with zlib. If mode='lossy', apply quantization based on compression_factor.
-        compression_factor: Target factor like 2, 4, 8, 10, 12 (used for quantization in lossy mode or level mapping in lossless)
-        mode: 'lossless' (zlib only) or 'lossy' (quantization + zlib)
-        """
-        if mode == 'lossy' and compression_factor is not None:
-            # Apply quantization to reduce data precision before compression
-            tensor = self.quantize_tensor(tensor, compression_factor)
-        
-        # Convert PyTorch tensor to NumPy array for compression
-        tensor_np = tensor.cpu().numpy()  # Ensure tensor is on CPU before conversion
-        
-        # Convert NumPy array to bytes
-        tensor_bytes = tensor_np.tobytes()
-        
-        # Map compression factor to zlib level (0-9) for lossless mode if provided
-        if compression_factor is not None and mode == 'lossless':
-            # Rough mapping: higher factor -> higher compression level (though not exact)
-            # level = min(9, max(0, int(compression_factor / 2)))  # Example mapping
-            level = min(9, max(0, int(compression_factor))) 
-        else:
-            level = 9  # Default to maximum compression
-        
-        # Compress using zlib (lossless compression)
-        compressed_data = zlib.compress(tensor_bytes, level=level)
-        return compressed_data, tensor  # Return modified tensor if quantized
-
-    # Function to decompress the data back to a tensor
-    def decompress_tensor(self, compressed_data, original_shape, dtype=torch.float32):
-        # Decompress the data
-        decompressed_bytes = zlib.decompress(compressed_data)
-        # Get the corresponding NumPy dtype from PyTorch dtype
-        np_dtype = dtype.numpy_dtype if hasattr(dtype, 'numpy_dtype') else np.float32
-        # Convert back to NumPy array with the original shape and dtype
-        tensor_np = np.frombuffer(decompressed_bytes, dtype=np_dtype).reshape(original_shape)
-        # Convert NumPy array back to PyTorch tensor
-        return torch.from_numpy(tensor_np).to(dtype=dtype)
-
-    # Function to calculate sizes and log to CSV with averages for multiple CAVs
-    def log_compression_stats(self, original_tensor, compressed_data, compression_factor=None, mode='lossless', csv_filename="compression_stats.csv", num_cavs=1, is_lossless=True):
-        """
-        Calculate and log compression statistics, including averages per CAV if num_cavs > 1.
-        num_cavs: Number of CAVs to calculate average data (default is 1, meaning no averaging).
-        """
-        # Calculate sizes in bytes for PyTorch tensor
-        original_size = original_tensor.element_size() * original_tensor.nelement()
-        compressed_size = len(compressed_data)
-        gained_size = original_size - compressed_size
-        actual_ratio = original_size / compressed_size if compressed_size > 0 else 0
-        
-        # Calculate averages if num_cavs > 1
-        if num_cavs > 1:
-            avg_original_size = original_size / num_cavs
-            avg_compressed_size = compressed_size / num_cavs
-            avg_gained_size = gained_size / num_cavs
-            # Compression ratio remains the same as it's a ratio, not a size
-        else:
-            avg_original_size = original_size
-            avg_compressed_size = compressed_size
-            avg_gained_size = gained_size
-        
-        # # Print sizes for verification (both total and average if applicable)
-        # print(f"\nResults for Compression Factor={compression_factor if compression_factor else 'Default'}, Mode={mode}:")
-        # print(f"Total Original Size: {original_size} bytes")
-        # print(f"Total Compressed Size: {compressed_size} bytes")
-        # print(f"Total Gained Size (Space Saved): {gained_size} bytes")
-        # print(f"Actual Compression Ratio: {actual_ratio:.2f}")
-        # if num_cavs > 1:
-        #     print(f"\nAverage per CAV (n={num_cavs}):")
-        #     print(f"Average Original Size: {avg_original_size:.2f} bytes")
-        #     print(f"Average Compressed Size: {avg_compressed_size:.2f} bytes")
-        #     print(f"Average Gained Size (Space Saved): {avg_gained_size:.2f} bytes")
-        # print("-" * 50)
-        
-        # Write to CSV (include both total and average if applicable)
-        file_exists = os.path.isfile(csv_filename)
-        with open(csv_filename, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            # Write header if file doesn't exist
-            if not file_exists:
-                writer.writerow(["Compression Factor", "Mode", "Num CAVs", "Total Original Size (bytes)", "Total Compressed Size (bytes)", "Total Gained Size (bytes)", "Actual Compression Ratio", "Avg Original Size per CAV (bytes)", "Avg Compressed Size per CAV (bytes)", "Avg Gained Size per CAV (bytes)", "Is_Lossless"])
-            # Write data (if num_cavs == 1, averages are same as totals)
-            writer.writerow([compression_factor if compression_factor else "Default", mode, num_cavs, original_size, compressed_size, gained_size, actual_ratio, avg_original_size, avg_compressed_size, avg_gained_size, int(is_lossless)])
-        # print(f"Stats logged to {csv_filename}")
-
-    def compress_features(self, selected_output_values_k,  num_cavs=1, factor=2, csv_filename="compression_stats.csv", mode="lossless"):
-        """
-        Compress features and log stats, with option to calculate averages for multiple CAVs.
-        num_cavs: Number of CAVs to calculate average data (default is 1, meaning no averaging).
-        """
-        original_dtype = selected_output_values_k.dtype
-        original_shape = selected_output_values_k.shape
-        num_cavs = original_shape[1]
-        
-        # Test lossless compression with the specified factor
-        # print("Testing Lossless Compression:")
-        compressed_data, _ = self.compress_tensor(selected_output_values_k, compression_factor=factor, mode=mode)
-        decompressed_tensor = self.decompress_tensor(compressed_data, original_shape, original_dtype)
-        is_lossless = torch.allclose(selected_output_values_k, decompressed_tensor.to(device=selected_output_values_k.device), atol=1e-8)
-        # print(f"Lossless Compression Verified for factor {factor}: {is_lossless}")
-        self.log_compression_stats(selected_output_values_k, compressed_data, compression_factor=factor, mode=mode,csv_filename=csv_filename, num_cavs=num_cavs, is_lossless=is_lossless)
-        
-        # Test lossy compression with quantization to approximate desired factors (uncomment if needed)
-        """
-        print("\nTesting Lossy Compression (with Quantization):")
-        compressed_data, modified_tensor = self.compress_tensor(selected_output_values_k, compression_factor=factor, mode='lossy')
-        decompressed_tensor = self.decompress_tensor(compressed_data, original_shape, original_dtype)
-        is_lossless = torch.allclose(selected_output_values_k, decompressed_tensor, atol=1e-8)
-        print(f"Lossless Compression Verified for factor {factor} (lossy mode): {is_lossless}")
-        self.log_compression_stats(selected_output_values_k, compressed_data, compression_factor=factor, mode='lossy', num_cavs=num_cavs)
-        """
-        return decompressed_tensor.to(device=selected_output_values_k.device)
-
-
-
-    def forward(self, batch_dict):
+    def forward(self, batch_dict, epoch):
         x = batch_dict['inputs']
         b, l, m, _, _, _ = x.shape
 
@@ -254,22 +104,37 @@ class CrossViewTransformerAttFuse(nn.Module):
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-        x = self.cvm(batch_dict)
+        #shilpa channel entropy
+        # x = self.cvm(batch_dict)
+        orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.cvm(batch_dict, epoch, self.prev_fused_feature)
+        # orig_bev_data_from_all_cav, selected_indices = self.cvm(batch_dict)
+        
+        x = orig_bev_data_from_all_cav
+        x, _ = regroup(x, record_len, self.max_cav)
+        x = self.sttf(x, transformation_matrix)
+        x = rearrange(x, 'b l h w c -> b l c h w')
+        n, c, h, w = orig_bev_data_from_all_cav.shape
+        max_cav = x.shape[1]  # max_cav = 5 (from x.shape)
+        batch_size = x.shape[0]
+        # print(f"x.device: {x.device}, orig_bev_data_from_all_cav.device: {orig_bev_data_from_all_cav.device}, selected_indices.device: {selected_indices.device}")
+        selected_output_values = torch.zeros(batch_size, max_cav, selected_indices.shape[0], h, w, device=x.device) 
+        for idx, value in enumerate(selected_indices):
+                # Use advanced indexing to copy values
+                selected_output_values[:, :, idx, :,:] = x[:, :, value, :,:].clone()
 
-        # B*L, C, H, W
-        x = x.squeeze(1)
+        cav_id_0_data = orig_bev_data_from_all_cav[batch_dict['ego_mat_index'][0]]  # Shape: [128, 32, 32]
+        # # # Step 2: Replicate cav_id=0 data across all CAVs
+        replicated_data = cav_id_0_data.unsqueeze(0).expand(n, -1, -1, -1)  # Shape: [5, 128, 32, 32]
+        replicated_data = replicated_data.unsqueeze(0).expand(1, -1, -1, -1, -1)  # Shape: [1, 5, 128, 32, 32]
+        selected_output_values_k = selected_output_values[:, :n, :, :]  # Shape: [1, k, 128, 307]
+        replicated_data = replicated_data.clone()
+        replicated_data[:, :, selected_indices, :, :] = selected_output_values_k[:, :, :len(selected_indices), :, :]
+        replicated_data=replicated_data.squeeze(0)
+        x = replicated_data
 
-        #shilpa rebuttal compression
-        factor = 32  
-        # mode = "lossless"  # or "lossy"
-        mode = "lossy" #"lossy"  # or "lossless"
-        compression_filename = f"/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/attfuse_st_compression_stats_{str(factor)}x_lossy.csv"
-        x = self.compress_features(x, factor=factor, csv_filename = compression_filename, mode = mode)
-         
         # Reformat to (B, max_cav, C, H, W)
         x, mask = regroup(x, record_len, self.max_cav)
-        # perform feature spatial transformation,  B, max_cav, H, W, C
-        x = self.sttf(x, transformation_matrix)
+        x = rearrange(x, 'b l c h w -> b l h w c')
         com_mask = mask.unsqueeze(1).unsqueeze(2).unsqueeze(
             3) if not self.use_roi_mask \
             else get_roi_and_cav_mask(x.shape,
@@ -278,10 +143,13 @@ class CrossViewTransformerAttFuse(nn.Module):
                                       self.discrete_ratio,
                                       self.downsample_rate)
 
+        # x = rearrange(x, 'b l h w c -> b l c h w')
         # fuse all agents together to get a single bev map, b h w c
         x = self.fusion_net(x, com_mask)
+       
         x = x.unsqueeze(1).permute(0, 1, 4, 2, 3)
-
+        #shilpa prev feature for uncertainty improvement
+        self.prev_fused_feature = x.squeeze(0).squeeze(0).clone()
         # dynamic head
         x = self.decoder(x)
         x = rearrange(x, 'b l c h w -> (b l) c h w')
@@ -289,7 +157,8 @@ class CrossViewTransformerAttFuse(nn.Module):
         b = x.shape[0]
         output_dict = self.seg_head(x, b, 1)
 
-        return output_dict
+        return output_dict, select_threhold, percentage_selected
+        # return output_dict
 
 
 if __name__ == '__main__':

@@ -170,7 +170,7 @@ def main():
                 # ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'])
 
                 #shilpa epsilon greedy
-                ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'])
+                ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch=epoch)
                 
                 
                 #shilpa select threshold
@@ -179,15 +179,15 @@ def main():
                 # second argument is always your label dictionary.
 
                 final_loss = criterion(ouput_dict,
-                                       batch_data['ego'])
+                                       batch_data['ego'], percentage_selected, epoch)
             else:
                 with torch.cuda.amp.autocast():
                     #shilpa select threshold
                     #shilpa epsilon greedy
                     # ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'])
-                    ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'])
+                    ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch=epoch)
 
-                    final_loss = criterion(ouput_dict, batch_data['ego'])
+                    final_loss = criterion(ouput_dict, batch_data['ego'], percentage_selected, epoch)
             criterion.logging(epoch, i, len(train_loader), writer,
                               pbar=pbar2)
             pbar2.update(1)
@@ -227,10 +227,10 @@ def main():
                     #shilpa select threshold
                     #shilpa epsilon greedy
                     # output_dict, select_threshold, percentage_selected = model(batch_data['ego'])
-                    output_dict, select_threshold, percentage_selected = model(batch_data['ego'])
+                    output_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch=epoch)
 
                     final_loss = criterion(output_dict,
-                                           batch_data['ego'])
+                                           batch_data['ego'], percentage_selected, epoch)
                     valid_ave_loss.append(final_loss.item())
 
                     # visualization purpose

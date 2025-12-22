@@ -19,12 +19,20 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_discretized_transformation_matrix
 
 #shilpa bev dim match
-import torch.nn.functional as F
+# import torch.nn.functional as F
+\
+#shilpa rebuttal localization
+import random
+
+#shilpa entropy
+from scipy.stats import entropy
 
 #shilpa compression
 import zlib
 import csv
 import os
+
+
 
 
 class STTF(nn.Module):
@@ -70,13 +78,13 @@ class STTF(nn.Module):
         x = rearrange(x, 'b l c w h -> b l h w c')
 
         return x
-         
-  
+     
 
 
 class CorpBEVT(nn.Module):
     def __init__(self, config):
         super(CorpBEVT, self).__init__()
+        #shilpa max_cav change inference
         self.max_cav = config['max_cav']
         # encoder params
         self.encoder = ResnetEncoder(config['encoder'])
@@ -97,7 +105,9 @@ class CorpBEVT(nn.Module):
         self.discrete_ratio = config['sttf']['resolution']
         self.use_roi_mask = config['sttf']['use_roi_mask']
         self.sttf = STTF(config['sttf'])
-       
+        #shilpa
+        # self.find_transformed_indices = STTF(config['sttf']).find_transformed_indices
+
         # spatial fusion
         self.fusion_net = SwapFusionEncoder(config['fax_fusion'])
 
@@ -111,7 +121,36 @@ class CorpBEVT(nn.Module):
                                    config['seg_head_dim'],
                                    config['output_class'])
         
-    #shilpa rebuttal compression
+        #shilpa entropy
+        # self.prev_avg_entropy = None
+        #shilpa prev feature for uncertainty improvement
+        self.prev_fused_feature = None
+
+        #shilpa grad cam
+        self.frame_counter = 0
+
+        #shilpa rebuttal latency
+        # Initialize variables for simulating data delay/latency
+        self.ids = []  # To store selected IDs for delayed data
+        self.previous_perception_data = None  # To store previous data for selected IDs
+        self.counter = 0  # To track frames since data was stored
+        self.delay_frames = 0  # Number of frames to wait before replacement
+
+    #self compression
+    # Function to quantize tensor for lossy compression (to approximate desired compression factor)
+    # def quantize_tensor(self, tensor, factor):
+    #     """
+    #     Reduce precision of tensor values to approximate a target compression factor.
+    #     Higher factor means more aggressive quantization (more lossy).
+    #     """
+    #     # Scale factor to control quantization (higher factor -> lower precision)
+    #     quantization_levels = int(256 / factor)  # Rough approximation
+    #     if quantization_levels < 1:
+    #         quantization_levels = 1
+    #     # Quantize by rounding to fewer levels (works with PyTorch tensor)
+    #     quantized = torch.round(tensor * quantization_levels) / quantization_levels
+    #     return quantized
+
     def quantize_tensor(self, tensor, factor):
         """
         Reduce precision of tensor values for lossy compression with a more aggressive approach.
@@ -256,42 +295,243 @@ class CorpBEVT(nn.Module):
         self.log_compression_stats(selected_output_values_k, compressed_data, compression_factor=factor, mode='lossy', num_cavs=num_cavs)
         """
         return decompressed_tensor.to(device=selected_output_values_k.device)
+    
+    #shilpa rebuttal loss simulation
+    def simulate_data_loss(self, x, record_len):
+        """
+        Simulates data loss in a tensor x of shape (b, l, c, h, w) within the valid record_len entries.
+        
+        Args:
+            x (torch.Tensor): Input tensor of shape (b, l, c, h, w)
+            record_len (int or torch.Tensor): Number of valid entries along the 'l' dimension for each batch.
+                If int, same for all batch elements; if tensor, shape (b,) with per-batch values.
+        
+        Returns:
+            torch.Tensor: Tensor with simulated data loss (corrupted entries set to 0)
+            float: Selected loss percentage
+        """
+        # Get the shape of the tensor
+        b, l, c, h, w = x.shape
+        
+        # Step 1: Randomly select loss percentage from [0, 1, 2, 5, 10]
+        # loss_percent = random.choice([0, 1, 2, 5, 10])
+        loss_percent = random.randint(0,10)  # Uniform random between 0 and 10
+        print(f"Selected Loss Percentage: {loss_percent}%")
+        
+        # If loss_percent is 0, return the tensor unchanged
+        if loss_percent == 0:
+            return x, loss_percent
+        
+        # Step 2: Handle record_len (convert to tensor if it's an int)
+        if isinstance(record_len, int):
+            record_len = torch.full((b,), record_len, device=x.device)
+        elif isinstance(record_len, torch.Tensor):
+            record_len = record_len.to(x.device)
+        else:
+            raise ValueError("record_len must be an int or torch.Tensor")
+        
+        # Create a copy of the input tensor to modify
+        x_corrupted = x.clone()
+        
+        # Step 3: Corrupt data for each batch element
+        for i in range(b):
+            # Get the valid length for this batch element
+            valid_len = min(record_len[i].item(), l)  # Ensure it doesn't exceed l
+            
+            # Only proceed if record_len > 1 (other CAVs exist beyond ego vehicle)
+            if valid_len <= 1:
+                continue
+            
+            # Total number of CAVs to consider for corruption (exclude index 0)
+            num_cavs = valid_len - 1
+            
+            # Total number of data elements across all CAVs (indices 1 to valid_len-1)
+            total_elements = num_cavs * c * h * w
+            
+            # Calculate number of elements to corrupt based on loss percentage
+            num_corrupt_elements = int(total_elements * loss_percent / 100.0)
+            if num_corrupt_elements == 0:
+                continue  # No corruption needed if num_corrupt_elements is 0
+            
+            # Step 4: Randomly select elements to corrupt
+            # First, determine distribution across CAVs, channels, height, and width
+            # Generate random indices for all dimensions
+            cav_indices = torch.randint(1, valid_len, (num_corrupt_elements,), device=x.device)  # CAVs from 1 to valid_len-1
+            c_indices = torch.randint(0, c, (num_corrupt_elements,), device=x.device)
+            h_indices = torch.randint(0, h, (num_corrupt_elements,), device=x.device)
+            w_indices = torch.randint(0, w, (num_corrupt_elements,), device=x.device)
+            
+            # Set the selected elements to 0 (corrupt the data)
+            x_corrupted[i, cav_indices, c_indices, h_indices, w_indices] = 0.0
+        
+        return x_corrupted, loss_percent
 
-    def forward(self, batch_dict):
+    #shilpa epsilon greedy
+    # def forward(self, batch_dict, ppo_agent=None):
+    def forward(self, batch_dict, epoch, ppo_agent=None):
         x = batch_dict['inputs']
         b, l, m, _, _, _ = x.shape
-        # print("orig")
 
         # shape: (B, max_cav, 4, 4)
         transformation_matrix = batch_dict['transformation_matrix']
-        record_len = batch_dict['record_len']
+        record_len = batch_dict['record_len']  # record_len is the number of CAVs in the scene
+
+        #shilpa rebuttal localization
+        # # Step 1: Sample alpha from uniform distribution [0, 1]
+        # alpha = torch.FloatTensor(1).uniform_(0, 1).item()
+        # # Step 2: Check if alpha < 0.2 to proceed with noise injection
+        # if alpha < 1.0:
+        #     # print("alpha < 0.2, proceeding with noise injection...")
+        #     num_selections = min(3, record_len)    
+        #     # Randomly select unique indices from valid range [0, record_len-1]
+        #     # Using random.sample to avoid duplicates
+        #     selected_indices = random.sample(range(record_len), num_selections)
+        #     # print("Selected Indices for Noise Injection:", selected_indices)
+
+        #     # Step 4: For each selected index, generate random noise and add to Tx, Ty, Tz
+        #     for idx in selected_indices:
+        #         if idx<record_len:
+        #             # Generate 3 random noise values between -20.0 and 20.0
+        #             noise = torch.FloatTensor(3).uniform_(-1.0, 1.0)
+        #             a, b, c = noise[0], noise[1], noise[2]
+        #             # print(f"Index {idx}: Adding noise (a={a:.2f}, b={b:.2f}, c={c:.2f}) to Tx, Ty, Tz")
+                    
+        #             # Add noise to Tx (position [0,3]), Ty ([1,3]), Tz ([2,3]) at batch=0, seq=idx
+        #             transformation_matrix[0, idx, 0, 3] += a
+        #             transformation_matrix[0, idx, 1, 3] += b
+        #             transformation_matrix[0, idx, 2, 3] += c
+        # # else:
+        # #     print("alpha >= 0.2, skipping noise injection.")
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-        #shilpa - SA and CA performed both
-        #shilpa - bev is calculated inside fax, so need to get that in output, and send transformer matrix for sttf inside
-        x = self.fax(batch_dict)
+      
+        #shilpa select threshold
+        # orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.fax(batch_dict, self.prev_fused_feature)
 
-        # # Step 1: Extract x[0], which has shape [1, 128, 32, 32]
-        # x_0 = x[0:1]  # Keep the singleton dimension for broadcasting
-        # # Step 2: Repeat x[0] k times along the first dimension
-        # x = x_0.repeat(x.shape[0], 1, 1, 1, 1)  # Shape becomes [k, 1, 128, 32, 32] 
-        # t_0 = transformation_matrix[0][0]
-        # t = t_0.repeat(transformation_matrix.shape[1],1,1) 
-        # transformation_matrix = t.unsqueeze(0)
+        #shilpa epsilon greedy
+        orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.fax(batch_dict, epoch, self.prev_fused_feature)
+        
+        #shilpa rebuttal latency
+        # # Simulate data delay/latency with 30% probability
+        # beta = 1.0
+        # if random.random() < beta and self.counter == 0:  # Only store new data if no delay is in progress
+        #     # Get possible IDs excluding 0th ID
+        #     possible_ids = list(range(1, record_len[0]))  # Assuming record_len is a tensor/list with batch size 1
+        #     if possible_ids and record_len[0]>1:  # Ensure there are IDs to select
+        #         # Randomly select a subset of IDs
+        #         num_ids_to_select = random.randint(1, len(possible_ids)) if len(possible_ids) > 1 else 1
+        #         self.ids = random.sample(possible_ids, num_ids_to_select)
+        #         # Store corresponding data from orig_bev_data_from_all_cav
+        #         # Assuming orig_bev_data_from_all_cav shape is [record_len, ch, h, w]
+        #         self.previous_perception_data = orig_bev_data_from_all_cav[self.ids].clone()  # Clone to avoid reference issues
+        #         # Select random delay frames from [1, 2, 4]
+        #         self.delay_frames = random.choice([0, 1, 2, 4])
+        #         self.counter = 0  # Reset counter
+        #         # print(f"Stored data for IDs {self.ids} with delay of {self.delay_frames} frames.")
+        
+        # # Increment counter if a delay is in progress
+        # if self.delay_frames>0:
+        #     if self.counter < self.delay_frames and self.previous_perception_data is not None:
+        #         self.counter += 1
+        #     # print(f"Counter: {self.counter}/{self.delay_frames}")
+        
+        # # Replace data if counter reaches delay_frames
+        # if self.delay_frames>0:
+        #     if self.counter == self.delay_frames and self.previous_perception_data is not None:
+        #         for idx, stored_id in enumerate(self.ids):
+        #             if stored_id < orig_bev_data_from_all_cav.shape[0]:  # Ensure ID is within bounds
+        #                 orig_bev_data_from_all_cav[stored_id] = self.previous_perception_data[idx]
+        #         # print(f"Replaced data for IDs {self.ids} after {self.delay_frames} frames.")
+        #         # Reset variables after replacement
+        #         self.ids = []
+        #         self.previous_perception_data = None
+        #         self.counter = 0
+        #         self.delay_frames = 0
+        
 
-        # B*L, C, H, W
-        x = x.squeeze(1)
+
+        x = orig_bev_data_from_all_cav
+
+        #shilpa max_cav change
+        # Number of records to keep
+        # k = 1
+        # if x.shape[0] > k:
+        #     # Truncate the tensor to keep only the first k records
+        #     x = x[:k]
+        #     # Update record_len to reflect the new number of records
+        #     record_len = torch.tensor([k], device=x.device)
+
+        x, _ = regroup(x, record_len, self.max_cav)
+        #shilpa max_cav change
+        # identity_matrix = torch.eye(4)  # 4x4 identity matrix
+        # transformation_matrix[0, k:] = identity_matrix
+        x = self.sttf(x, transformation_matrix)
+        
+        x = rearrange(x, 'b l h w c -> b l c h w')
+
+        #shilpa rebuttal loss simulation
+        # x, loss_percent = self.simulate_data_loss(x, record_len)
+        # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/coopertrim_cobevt_dyn_loss10_losses_all.txt'
+        # # Check if the file exists to determine the starting frame
+        # if os.path.exists(file_path):
+        #             # Read the last line to get the last frame number
+        #             with open(file_path, 'r') as file:
+        #                 lines = file.readlines()
+        #                 if lines:
+        #                     last_line = lines[-1]
+        #                     last_frame = int(last_line.split(',')[0].strip('()'))  # Extract the frame number
+        #                     current_frame = last_frame + 1
+        #                 else:
+        #                     current_frame = 1  # If file is empty, start with frame 1
+        # else:
+        #             current_frame = 1  # If file doesn't exist, start with frame 1
+
+        #         # Prepare the line to be written to the file
+        # line_to_write = f"({current_frame},{loss_percent})\n"
+
+        #         # Write to the file
+        # with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
+        #             file.write(line_to_write)
+        #         #    print(f"Frame {current_frame}: {percentage_selected:.2f}% of indices selected") 
+
+
+        n, c, h, w = orig_bev_data_from_all_cav.shape
+        #shilpa max_cav change
+        # n = record_len.item()
+        max_cav = x.shape[1]  # max_cav = 5 (from x.shape)
+        batch_size = x.shape[0]
+
+
+        selected_output_values = torch.zeros(batch_size, max_cav, selected_indices.shape[0], h, w, device=x.device) 
+        for idx, value in enumerate(selected_indices):
+                # Use advanced indexing to copy values
+                selected_output_values[:, :, idx, :,:] = x[:, :, value, :,:].clone()
+
+        cav_id_0_data = orig_bev_data_from_all_cav[batch_dict['ego_mat_index'][0]]  # Shape: [128, 32, 32]
+
+        #enable for fuse auto
+
+        # # # Step 2: Replicate cav_id=0 data across all CAVs
+        replicated_data = cav_id_0_data.unsqueeze(0).expand(n, -1, -1, -1)  # Shape: [5, 128, 32, 32]
+        replicated_data = replicated_data.unsqueeze(0).expand(1, -1, -1, -1, -1)  # Shape: [1, 5, 128, 32, 32]
+
+        
+        selected_output_values_k = selected_output_values[:, :n, :, :]  # Shape: [1, k, 128, 307]
 
         #shilpa rebuttal compression
         factor = 32  
         # mode = "lossless"  # or "lossy"
         mode = "lossy" #"lossy"  # or "lossless"
-        compression_filename = f"/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/attfuse_dyn_compression_stats_{str(factor)}x_lossy.csv"
-        x = self.compress_features(x, factor=factor, csv_filename = compression_filename, mode = mode)
-         
+        compression_filename = f"/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/coopertrim_st_compression_stats_{str(factor)}x_lossy.csv"
+        selected_output_values_k = self.compress_features(selected_output_values_k, factor=factor, csv_filename = compression_filename, mode = mode)
+               
+        replicated_data = replicated_data.clone()
+        replicated_data[:, :, selected_indices, :, :] = selected_output_values_k[:, :, :len(selected_indices), :, :]
+        replicated_data=replicated_data.squeeze(0)
 
-       
+        x = replicated_data
+        
         # compressor
         #shilpa - to check during ablation study
         if self.compression:
@@ -300,9 +540,7 @@ class CorpBEVT(nn.Module):
         # Reformat to (B, max_cav, C, H, W)
         x, mask = regroup(x, record_len, self.max_cav)
         
-        # perform feature spatial transformation,  B, max_cav, H, W, C
-        #shilpa
-        x = self.sttf(x, transformation_matrix)
+        x = rearrange(x, 'b l c h w -> b l h w c')
         com_mask = mask.unsqueeze(1).unsqueeze(2).unsqueeze(
             3) if not self.use_roi_mask \
             else get_roi_and_cav_mask(x.shape,
@@ -311,26 +549,38 @@ class CorpBEVT(nn.Module):
                                       self.discrete_ratio,
                                       self.downsample_rate)
         
+      
+        x = rearrange(x, 'b l h w c -> b l c h w')
         
-       
-        # # fuse all agents together to get a single bev map, b h w c
-        x = rearrange(x, 'b l h w c -> b l c h w')      
     
         x = self.fusion_net(x, com_mask)
+
+        # #shilpa grad cam
+        # if self.frame_counter % 1 == 0:
+        #     output_dir = f"/data/HangQiu/proj/AutoNetSelection/eval_visualizations/fused_frame_{self.frame_counter}"
+        #     self.fax.visualize_selected_channels(
+        #         x.squeeze(0), 
+        #         selected_indices, 
+        #         output_dir,
+        #         self.frame_counter
+        #     )
+        # self.frame_counter += 1
+
+        #shilpa prev feature for uncertainty improvement
+        self.prev_fused_feature = x.squeeze(0).clone()
+
         x = x.unsqueeze(1)
 
 
-        
-        # x = self.fusion_net(x, com_mask)
-        # ego_data = x[0]
-        # ego_data = ego_data.unsqueeze(0)
-        # x = ego_data
 
+        
         # dynamic head
         x = self.decoder(x)
         x = rearrange(x, 'b l c h w -> (b l) c h w')
         b = x.shape[0]
         output_dict = self.seg_head(x, b, 1)
 
-
-        return output_dict
+        
+        #shilpa select threshold
+        return output_dict, select_threhold, percentage_selected
+        # return output_dict, channel_select_probabilities, percentage_selected, state 

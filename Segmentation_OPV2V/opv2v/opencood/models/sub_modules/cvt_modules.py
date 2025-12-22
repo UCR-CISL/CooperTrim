@@ -10,7 +10,15 @@ from einops import rearrange, repeat
 from torchvision.models.resnet import Bottleneck
 from typing import List
 
+#shilpa channel select adapt
+from opencood.models.sub_modules.channel_select_attention import CrossAttentionMaskPredictor, CrossAttentionMaskPredictorAdaptive
+#shilpa channel select adapt SA
+# from opencood.models.sub_modules.channel_select_self_attention import SelfAttentionMaskPredictor
 import os
+import numpy as np
+
+#shilpa epsilon greedy
+import random
 
 
 ResNetBottleNeck = lambda c: Bottleneck(c, c // 4)
@@ -307,12 +315,111 @@ class CrossViewModule(nn.Module):
         self.bev_embedding = BEVEmbedding(dim, **config['bev_embedding'])
         self.cross_views = nn.ModuleList(cross_views)
         self.layers = nn.ModuleList(layers)
-        
+        #shilpa channel selection entropy
+        self.prev_avg_entropy = None
 
-    #shilpa channel entropy
-    def forward(self, batch):
+        #  #shilpa channel select adapt
+        num_channel_select = config['channel_select']['channel_dim']
+        num_spatial_select = config['channel_select']['spatial_dim']
+        self.channel_select_model = CrossAttentionMaskPredictor(num_channels=num_channel_select, spatial_dim=num_spatial_select)
+        self.channel_select_model_adaptive = CrossAttentionMaskPredictorAdaptive(num_channels=num_channel_select, spatial_dim=num_spatial_select)
+
+        #shilpa channel select adapt SA
+        # self.channel_select_model = SelfAttentionMaskPredictor(num_channels=num_channel_select, spatial_dim=num_spatial_select)
+
+        # shilpa learnable confidence level
+        initial_confidence_level = 50  # Initial value for the confidence level
+        self.confidence_level = nn.Parameter(torch.tensor(initial_confidence_level, dtype=torch.float32))
+    
+    # #shilpa conformal prediction
+    # def compute_conformal_uncertainty(self, reference_data, current_data, confidence_level=90):
+    #     """
+    #     Compute uncertainty using conformal prediction based on reference tensor.
+
+    #     Parameters:
+    #         reference_data (torch.Tensor): Reference tensor of shape (128, 32, 32).
+    #         current_data (torch.Tensor): Current tensor of shape (128, 32, 32).
+    #         confidence_level (int): Confidence level for quantile threshold (e.g., 90 for 90%).
+
+    #     Returns:
+    #         quantile_threshold (float): The quantile threshold for conformity scores.
+    #         uncertainty_flags (torch.Tensor): Boolean tensor of shape (128) indicating uncertainty.
+    #         uncertainty_intervals (list): List of tuples containing lower and upper bounds for uncertainty intervals.
+    #     """
+    #     # Step 1: Compute conformity scores (mean absolute difference across spatial dimensions)
+    #     conformity_scores_whole = torch.abs(reference_data - current_data)
+    #     conformity_scores = conformity_scores_whole.mean(dim=(1, 2))  # Shape: [128]
+
+    #     # Step 2: Determine the quantile threshold (e.g., 90th percentile for 90% confidence)
+    #     conformity_scores_np = conformity_scores.detach().cpu().numpy()
+    #     quantile_threshold = np.percentile(conformity_scores_np, confidence_level)  # Convert to numpy for quantile calculation
+
+    #     # Step 3: Inductive uncertainty quantification
+    #     # Flag channels where the conformity score exceeds the quantile threshold
+    #     uncertainty_flags = conformity_scores > quantile_threshold  # Shape: [128]
+
+    #     # Step 4: Generate uncertainty intervals
+    #     uncertainty_intervals = torch.zeros(current_data.shape[0], device=current_data.device)
+
+    #     for i in range(uncertainty_intervals.shape[0]):
+    #         if uncertainty_flags[i]:
+    #             # Example: Create interval based on score and threshold
+    #             lower_bound = conformity_scores_whole[i].min().item()
+    #             upper_bound = conformity_scores_whole[i].max().item()
+    #             uncertainty_intervals[i] = upper_bound - lower_bound
+    #         else:
+    #             uncertainty_intervals[i] = 0.0  # No interval for conforming channels
+
+    #     # return quantile_threshold, uncertainty_flags, uncertainty_intervals
+    #     return uncertainty_intervals
+
+    def compute_conformal_uncertainty(self, reference_data, current_data, confidence_level=90):
+        """
+        Compute uncertainty using conformal prediction based on reference tensor.
+
+        Parameters:
+            reference_data (torch.Tensor): Reference tensor of shape (128, 32, 32).
+            current_data (torch.Tensor): Current tensor of shape (128, 32, 32).
+            confidence_level (int): Confidence level for quantile threshold (e.g., 90 for 90%).
+
+        Returns:
+            quantile_threshold (float): The quantile threshold for conformity scores.
+            uncertainty_flags (torch.Tensor): Boolean tensor of shape (128) indicating uncertainty.
+            uncertainty_intervals (list): List of tuples containing lower and upper bounds for uncertainty intervals.
+        """
+        # Step 1: Compute conformity scores (mean absolute difference across spatial dimensions)
+        conformity_scores_whole = torch.abs(reference_data - current_data)
+        conformity_scores = conformity_scores_whole.mean(dim=(1, 2))  # Shape: [128]
+
+        # Step 2: Determine the quantile threshold (e.g., 90th percentile for 90% confidence)
+        conformity_scores_np = conformity_scores.detach().cpu().numpy()
+
+        # shilpa learnable confidence level
+        # quantile_threshold = np.percentile(conformity_scores_np, confidence_level)  # Convert to numpy for quantile calculation
+        quantile_threshold = np.percentile(conformity_scores_np, confidence_level.item())
+
+        # Step 3: Inductive uncertainty quantification
+        # Flag channels where the conformity score exceeds the quantile threshold
+        uncertainty_flags = conformity_scores > quantile_threshold  # Shape: [128]
+
+        # Step 4: Generate uncertainty intervals
+        uncertainty_intervals = torch.zeros(current_data.shape[0], device=current_data.device)
+
+        for i in range(uncertainty_intervals.shape[0]):
+            if uncertainty_flags[i]:
+                # Example: Create interval based on score and threshold
+                lower_bound = conformity_scores_whole[i].min().item()
+                upper_bound = conformity_scores_whole[i].max().item()
+                uncertainty_intervals[i] = upper_bound - lower_bound
+            else:
+                uncertainty_intervals[i] = 0.0  # No interval for conforming channels
+
+        # return quantile_threshold, uncertainty_flags, uncertainty_intervals
+        return uncertainty_intervals
+    
+
+    def forward(self, batch, epoch, prev_fused_feature=None):
         b, l, n, _, _, _ = batch['inputs'].shape
-        # print("orig run")
 
         I_inv = \
             rearrange(batch['intrinsic'], 'b l m h w -> (b l) m h w').inverse()
@@ -330,11 +437,145 @@ class CrossViewModule(nn.Module):
             feature = rearrange(feature, 'b l n ... -> (b l) n ...', b=b, n=n)
             x = cross_view(x, self.bev_embedding, feature, I_inv, E_env)
             x = layer(x)
-        x = rearrange(x, '(b l) ... -> b l ...', b=b, l=l)
-        return x
+        # x = rearrange(x, '(b l) ... -> b l ...', b=b, l=l)
+
+        orig_bev_data_from_all_cav = x
+        
+       
+        data_at_index_0 = x[0]  # Shape: (128, 32, 32)
+        dim_len,height, width = data_at_index_0.shape  # Extract H and W
+
+        flattened_data = data_at_index_0.view(dim_len, -1)  # Shape: (128, height * width)
+
+        num_spatial_indices = data_at_index_0.shape[0]
+        select_threshold=None
+
+        #shilpa epsilon greedy
+        epsilon = 0.1  # Exploration probability
+        if epoch > 5 and random.random() > epsilon:  # Exploit with probability
+        # if self.prev_avg_entropy is not None:
+                percentage_data_to_request= 0.1
+                # print(f"percentage_data_to_request: {percentage_data_to_request}")
+                
+                #shilpa conformal prediction
+                # std_dev = data_at_index_0.std(dim=(1, 2))
+                # std_dev = std_dev.unsqueeze(0) 
+
+                if prev_fused_feature is not None:
+                    # uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=50).unsqueeze(0)
+                #     # shilpa learnable confidence level
+                    uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=self.confidence_level).unsqueeze(0)
+                 
+
+                # shilpa channel select adapt
+                # std_dev = data_at_index_0.std(dim=(1, 2))
+                # sorted_std_dev, sorted_indices = torch.sort(std_dev, descending=True)
+                # num_elements = std_dev.shape[0]  # Total number of elements (128 in this case)
+                # top_k_percent_count = int(num_elements * percentage_data_to_request)  # Calculate 80% of the elements
+                # top_k_indices = sorted_indices[:top_k_percent_count]
+                # random_indices = top_k_indices#[torch.randperm(top_k_percent_count)]
+                # std_dev = std_dev.unsqueeze(0) 
+                 
+                # Step 3: Forward Pass
+
+                # shilpa conformal prediction
+
+                # predicted_mask,  select_threshold = self.channel_select_model(std_dev, data_at_index_0.unsqueeze(0))  # Shape: [batch_size, 128]
+                # predicted_mask = self.channel_select_model(std_dev, data_at_index_0.unsqueeze(0)) 
+
+                
+                predicted_mask, select_threshold = self.channel_select_model_adaptive(uncertainty_intervals, data_at_index_0.unsqueeze(0)) 
+                # predicted_mask = self.channel_select_model(uncertainty_intervals, data_at_index_0.unsqueeze(0))
+                # select_threshold = torch.tensor(0.5)
+
+                
+                # Step 4: Convert Probabilities to Binary Mask
+                # predicted_mask = (predicted_mask > 0.5).float().to(data_at_index_0.device)  # Threshold at 0.5
+
+                indices = torch.where(predicted_mask[0] == 1)#.squeeze(1)
+                random_indices = indices[0]#.squeeze(0)
+                # print(random_indices.device)
+                # random_indices = random_indices.long()
+
+                total_indices = predicted_mask.shape[1]
+                selected_indices = random_indices.shape[0]  # Count of selected indices
+                percentage_selected = (selected_indices / total_indices) * 100
+                print(f"percentage_selected: {(percentage_selected):.2f}%")
 
 
-  
+                #shilp adump channel select
+                # File path
+                # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_swapfuse_dyn_lagrange.txt'
+
+                # # Check if the file exists to determine the starting frame
+                # if os.path.exists(file_path):
+                #     # Read the last line to get the last frame number
+                #     with open(file_path, 'r') as file:
+                #         lines = file.readlines()
+                #         if lines:
+                #             last_line = lines[-1]
+                #             last_frame = int(last_line.split(',')[0].strip('()'))  # Extract the frame number
+                #             current_frame = last_frame + 1
+                #         else:
+                #             current_frame = 1  # If file is empty, start with frame 1
+                # else:
+                #     current_frame = 1  # If file doesn't exist, start with frame 1
+
+
+                # # Prepare the line to be written to the file
+                # line_to_write = f"({current_frame},{percentage_selected})\n"
+
+                # # Write to the file
+                # with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
+                #     file.write(line_to_write)
+                #     # print(f"Frame {current_frame}: {percentage_selected:.2f}% of indices selected") 
       
+        else:
+                percentage_data_to_request = 1.0
+                num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
+                #shilpa Transmission 1 - this data is transmitted from ego to CAV for request
+                # random_indices = torch.randperm(num_spatial_indices, device=flattened_data.device)[:num_random_indices]  # Random 30% indices
+                random_indices = torch.arange(num_spatial_indices, device=flattened_data.device)[:num_random_indices]
+                self.prev_avg_entropy = 1
+                percentage_selected = 100.0
+                print(f"percentage_selected: {percentage_selected:.2f}%")
 
+                #shilpa dump channel select
+                # # File path
+                # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_swapfuse_st_lagrange.txt'
+
+                # # Check if the file exists to determine the starting frame
+                # if os.path.exists(file_path):
+                #     # Read the last line to get the last frame number
+                #     with open(file_path, 'r') as file:
+                #         lines = file.readlines()
+                #         if lines:
+                #             last_line = lines[-1]
+                #             last_frame = int(last_line.split(',')[0].strip('()'))  # Extract the frame number
+                #             current_frame = last_frame + 1
+                #         else:
+                #             current_frame = 1  # If file is empty, start with frame 1
+                # else:
+                #     current_frame = 1  # If file doesn't exist, start with frame 1
+
+                # # Prepare the line to be written to the file
+                # line_to_write = f"({current_frame},100)\n"
+
+                # # Write to the file
+                # with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
+                #     file.write(line_to_write)
+
+
+        # percentage_data_to_request = 0.01
+        # # print(f"percentage_data_to_request: {percentage_data_to_request}")
+        # num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
+        # #shilpa Transmission 1 - this data is transmitted from ego to CAV for request
+        # random_indices = torch.randperm(num_spatial_indices, device=flattened_data.device)[:num_random_indices]  # Random 30% indices
+        # # random_indices = torch.arange(num_spatial_indices, device=flattened_data.device)[:num_random_indices]
+        # self.prev_avg_entropy = 1
+        # normalized_uncertainty = 1.0
+        
+    
+        return orig_bev_data_from_all_cav, random_indices, select_threshold, percentage_selected
+      
 
