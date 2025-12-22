@@ -8,7 +8,7 @@
 [![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
-CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framework with <strong>Uncertainty-Guided</strong> intermediate feature selection for autonomous driving.
+CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framework with <strong>Uncertainty-Guided Adaptive</strong> intermediate feature selection for autonomous driving.
 
 <p align="center">
 <img src="images/Adaptive_selection.png" width="600" alt="">
@@ -41,18 +41,19 @@ CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framewo
     - [x] [Cooper [ICDCS]](https://arxiv.org/abs/1905.05265)
     - [x] [F-Cooper [SEC2019]](https://arxiv.org/abs/1909.06459)
     - [x] [V2VNet [ECCV2022]](https://arxiv.org/abs/2008.07519)
-    - [x] [CoAlign (fusion only) [ICRA2023]](https://arxiv.org/abs/2211.07214)
-    - [x] [FPV-RCNN [RAL2022]](https://arxiv.org/pdf/2109.11615.pdf)
+    - [ ] [CoAlign (fusion only) [ICRA2023]](https://arxiv.org/abs/2211.07214)
+    - [ ] [FPV-RCNN [RAL2022]](https://arxiv.org/pdf/2109.11615.pdf)
     - [x] [DiscoNet [NeurIPS2021]](https://arxiv.org/abs/2111.00643)
-    - [x] [V2X-ViT [ECCV2022]](https://github.com/DerrickXuNu/v2x-vit)
+    - [ ] [V2X-ViT [ECCV2022]](https://github.com/DerrickXuNu/v2x-vit)
     - [x] [CoBEVT [CoRL2022]](https://arxiv.org/abs/2207.02202)  
     - [ ] [AdaFusion [WACV2023]](https://arxiv.org/abs/2208.00116)  
     - [x] [Where2comm [NeurIPS2022]](https://arxiv.org/abs/2209.12836)
-    - [x] [V2VAM [TIV2023]](https://arxiv.org/abs/2212.08273) 
+    - [ ] [V2VAM [TIV2023]](https://arxiv.org/abs/2212.08273)
+    - [x] [SwissCheese [TIV2024]](https://ieeexplore.ieee.org/document/10732008) 
 
 - **Provide a convenient log replay toolbox for OPV2V dataset.** Check [here](logreplay/README.md) to see more details.
 
-## Data Downloading
+## OPV2V Data Downloading
 All the data can be downloaded from [UCLA BOX](https://ucla.app.box.com/v/UCLA-MobilityLab-OPV2V). If you have a good internet, you can directly
 download the complete large zip file such as `train.zip`. In case you suffer from downloading large files, we also split each data set into small chunks, which can be found 
 in the directory ending with `_chunks`, such as `train_chunks`. After downloading, please run the following command to each set to merge those chunks together:
@@ -61,10 +62,22 @@ cat train.zip.part* > train.zip
 unzip train.zip
 ```
 
-## Installation
+### Installation
 Please refer to [data introduction](https://opencood.readthedocs.io/en/latest/md_files/data_intro.html)
 and [installation](https://opencood.readthedocs.io/en/latest/md_files/installation.html) guide to prepare
 data and install CooperTrim. To see more details of OPV2V data, please check [our website.](https://mobility-lab.seas.ucla.edu/opv2v/)
+
+## V2V4Real Data Downloading
+Please check V2V4Real's [website](https://research.seas.ucla.edu/mobility-lab/v2v4real/) to download the data (OPV2V format).
+
+After downloading the data, please put the data in the following structure:
+```shell
+├── v2v4real
+│   ├── train
+|      |── testoutput_CAV_data_2022-03-15-09-54-40_1
+│   ├── validate
+│   ├── test
+```
 
 ## Quick Start
 
