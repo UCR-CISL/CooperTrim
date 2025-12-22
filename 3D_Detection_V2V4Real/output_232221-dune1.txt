@@ -1,3 +1,0 @@
-dune1.cris.local
-Fri Nov 21 08:03:37 PST 2025
-/home/csgrad/smukh039/miniforge3/envs/opencood_env/bin/python
