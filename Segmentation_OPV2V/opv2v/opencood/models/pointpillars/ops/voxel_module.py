@@ -3,7 +3,7 @@
 import torch
 import torch.nn as nn
 from .voxel_op import hard_voxelize
-#shilpa lidar
+#CooperTrim lidar
 torch.cuda.empty_cache()
 
 

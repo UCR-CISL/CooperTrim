@@ -33,7 +33,7 @@ class BevSegHead(nn.Module):
                                          padding=1)
 
     def forward(self,  x, b, l):
-        #shilpa - check here to enable static and dynamic Seg enable
+        #CooperTrim - check here to enable static and dynamic Seg enable
         if self.target == 'dynamic':
             dynamic_map = self.dynamic_head(x)
             dynamic_map = rearrange(dynamic_map, '(b l) c h w -> b l c h w',

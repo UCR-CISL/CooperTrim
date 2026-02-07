@@ -81,10 +81,10 @@ class PointPillarLoss(nn.Module):
         self.reg_coe = args['reg']
         self.loss_dict = {}
 
-        #shilpa autonet
+        #CooperTrim autonet
         # self.select_channel_wt = args['select_channel_wt'] if 'select_channel_wt' in args else 0.01
 
-    #shilpa autonet
+    #CooperTrim autonet
     def forward(self, output_dict, target_dict): #, percentage_selected, epoch):
         """
         Parameters
@@ -143,7 +143,7 @@ class PointPillarLoss(nn.Module):
 
         total_loss = reg_loss + conf_loss
         
-        #shilpa autonet
+        #CooperTrim autonet
         # #l5
         # if epoch % 10 == 0:
         #     # Dynamically scale the weight based on the percentage_selected

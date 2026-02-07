@@ -59,7 +59,7 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
        
 
         # loop over all CAVs to process information
-        #shilpa ego index
+        #CooperTrim ego index
         ego_index_in_processed_matrix =-1
         for cav_id, selected_cav_base in data_sample.items():
             
@@ -80,11 +80,11 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
                 selected_cav_processed['transformation_matrix'])
             
             
-            #shilpa ego index
+            #CooperTrim ego index
             ego_index_in_processed_matrix +=1
 
             if cav_id == ego_id:
-                #shilpa ego index
+                #CooperTrim ego index
                 ego_mat_index = ego_index_in_processed_matrix
                 
                 gt_dynamic.append(
@@ -107,12 +107,12 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
             [transformation_matrix, padding_eye], axis=0)
 
         processed_data_dict['ego'].update({
-            #shilpa include ego
+            #CooperTrim include ego
             'ego_id': ego_id,
             'ego_mat_index': ego_mat_index,
             'transformation_matrix': transformation_matrix,
             'pairwise_t_matrix': pairwise_t_matrix,
-            #shilpa lidar
+            #CooperTrim lidar
             # 'lidar_data': lidar_data,
             'camera_data': camera_data,
             'camera_intrinsic': camera_intrinsic,
@@ -241,7 +241,7 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
 
         selected_cav_processed.update({'camera': camera_dict})
 
-        #shilpa lidar
+        #CooperTrim lidar
         # lidar_dict = {
         #     'data': np.stack(selected_cav_base['lidar_np']),
         # }
@@ -281,7 +281,7 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
         record_len = []
 
       
-        #shilpa ego index
+        #CooperTrim ego index
         ego_mat_index = []
 
         for i in range(len(batch)):
@@ -296,7 +296,7 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
                    camera_extrinsic.shape[0]
 
             record_len.append(camera_data.shape[0])
-            #shilpa ego index
+            #CooperTrim ego index
             ego_mat_index.append(ego_dict['ego_mat_index'])
 
             cam_rgb_all_batch.append(camera_data)
@@ -324,7 +324,7 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
             np.concatenate(cam_to_ego_all_batch, axis=0)).unsqueeze(1).float()
         # (B,)
         record_len = torch.from_numpy(np.array(record_len, dtype=int))
-        #shilpa ego index
+        #CooperTrim ego index
         ego_mat_index = torch.from_numpy(np.array(ego_mat_index, dtype=int))
 
 
@@ -343,9 +343,9 @@ class CamIntermediateFusionDataset(base_camera_dataset.BaseCameraDataset):
 
         # convert numpy arrays to torch tensor
         output_dict['ego'].update({
-            #shilpa ego index
+            #CooperTrim ego index
             'ego_mat_index': ego_mat_index,
-            #shilpa lidar
+            #CooperTrim lidar
             # 'lidar_data': lidar_data,
             'inputs': cam_rgb_all_batch,
             'extrinsic': cam_to_ego_all_batch,

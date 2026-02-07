@@ -55,7 +55,7 @@ class Communication(nn.Module):
 
             L = communication_maps.shape[0]
 
-            #shilpa where2comm
+            #CooperTrim where2comm
             # if self.training:
             #     # Official training proxy objective
             #     K = int(H * W * random.uniform(0, 1))
@@ -291,7 +291,7 @@ class Where2comm(nn.Module):
                         communication_rates = torch.tensor(1).to(x.device)
                     else:
                         # Prune
-                        #shilpa
+                        #CooperTrim
                         # batch_confidence_maps = self.regroup(psm_single, record_len)
                         batch_confidence_maps = self.regroup(psm_single, record_len).squeeze(0)
                         communication_masks, communication_rates = self.naive_communication(batch_confidence_maps, B)
@@ -331,7 +331,7 @@ class Where2comm(nn.Module):
                 communication_rates = torch.tensor(1).to(x.device)
             else:
                 # Prune
-                #shilpa
+                #CooperTrim
                 batch_confidence_maps = self.regroup(psm_single, record_len)
                 # batch_confidence_maps = self.regroup(psm_single, record_len)#.squeeze(0)
                 communication_masks, communication_rates = self.naive_communication(batch_confidence_maps, B)

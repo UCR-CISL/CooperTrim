@@ -13,7 +13,7 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_transformation_matrix, warp_affine, get_roi_and_cav_mask, \
     get_discretized_transformation_matrix
 from opencood.models.sub_modules.bev_seg_head import BevSegHead
-#shilpa fcooper compress
+#CooperTrim fcooper compress
 from opencood.models.sub_modules.naive_compress import NaiveCompressor
 
 
@@ -74,7 +74,7 @@ class CrossViewTransformerFcooper(nn.Module):
         cvm_params['backbone_output_shape'] = self.encoder.output_shapes
         self.cvm = CrossViewModule(cvm_params)
 
-        #shilpa fcooper compress
+        #CooperTrim fcooper compress
         if config['compression'] > 0:
             self.compression = True
             self.naive_compressor = NaiveCompressor(128, config['compression'])
@@ -115,7 +115,7 @@ class CrossViewTransformerFcooper(nn.Module):
         # B*L, C, H, W
         x = x.squeeze(1)
 
-        #shilpa fcooper compress
+        #CooperTrim fcooper compress
         if self.compression:
             x = self.naive_compressor(x)
 

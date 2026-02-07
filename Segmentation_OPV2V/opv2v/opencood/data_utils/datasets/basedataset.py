@@ -274,7 +274,7 @@ class BaseDataset(Dataset):
                                                              timestamp_key_delay,
                                                              cur_ego_pose_flag)
             # todoL temporally disable pcd loading
-            #shilpa lidar
+            #CooperTrim lidar
             # data[cav_id]['lidar_np'] = \
                 # pcd_utils.pcd_to_np(cav_content[timestamp_key_delay]['lidar'])
             data[cav_id]['camera_np'] = \

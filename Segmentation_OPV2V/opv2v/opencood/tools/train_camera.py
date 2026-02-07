@@ -13,7 +13,7 @@ from opencood.tools import train_utils
 from opencood.tools import multi_gpu_utils
 from opencood.data_utils.datasets import build_dataset
 from opencood.utils.seg_utils import cal_iou_training
-#shilpa RL\
+#CooperTrim RL\
 # from opencood.models.rl_algo.ppo_agent import PPOAgent  # Import PPO/SAC agent
 
 
@@ -36,7 +36,7 @@ def train_parser():
 
 
 def main():
-    #shilpa
+    #CooperTrim
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     opt = train_parser()
@@ -135,7 +135,7 @@ def main():
     num_steps = len(train_loader)
     scheduler = train_utils.setup_lr_schedular(hypes, optimizer, num_steps)
 
-    #shilpa RL
+    #CooperTrim RL
     
     # Initialize PPO agent
     # ppo_agent = PPOAgent(state_dim=num_channels, action_dim=num_channels)
@@ -152,7 +152,7 @@ def main():
 
         pbar2 = tqdm.tqdm(total=len(train_loader), leave=True)
 
-        #shilpa
+        #CooperTrim
         torch.autograd.set_detect_anomaly(True)
 
         for i, batch_data in enumerate(train_loader):
@@ -166,14 +166,14 @@ def main():
 
             if not opt.half:
                 
-                #shilpa select threshold               
+                #CooperTrim select threshold               
                 # ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'])
 
-                #shilpa epsilon greedy
+                #CooperTrim epsilon greedy
                 ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch=epoch)
                 
                 
-                #shilpa select threshold
+                #CooperTrim select threshold
 
                 # first argument is always your output dictionary,
                 # second argument is always your label dictionary.
@@ -182,8 +182,8 @@ def main():
                                        batch_data['ego'], percentage_selected, epoch)
             else:
                 with torch.cuda.amp.autocast():
-                    #shilpa select threshold
-                    #shilpa epsilon greedy
+                    #CooperTrim select threshold
+                    #CooperTrim epsilon greedy
                     # ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'])
                     ouput_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch=epoch)
 
@@ -207,7 +207,7 @@ def main():
 
             scheduler.step_update(epoch * num_steps + i)
 
-        #shilpa select threshold
+        #CooperTrim select threshold
         print("select_threshold:", select_threshold, 
               "percentage_selected:", percentage_selected)
 
@@ -216,7 +216,7 @@ def main():
             dynamic_ave_iou = []
             static_ave_iou = []
             lane_ave_iou = []
-            #shilpa include channel selection in logs
+            #CooperTrim include channel selection in logs
             percentage_selected_log = []
 
             with torch.no_grad():
@@ -224,8 +224,8 @@ def main():
                     model.eval()
 
                     batch_data = train_utils.to_device(batch_data, device)
-                    #shilpa select threshold
-                    #shilpa epsilon greedy
+                    #CooperTrim select threshold
+                    #CooperTrim epsilon greedy
                     # output_dict, select_threshold, percentage_selected = model(batch_data['ego'])
                     output_dict, select_threshold, percentage_selected = model(batch_data['ego'], epoch=epoch)
 
@@ -247,34 +247,34 @@ def main():
                     static_ave_iou.append(iou_static[1])
                     dynamic_ave_iou.append(iou_dynamic[1])
                     lane_ave_iou.append(iou_static[2])
-                    #shilpa include channel selection in logs
+                    #CooperTrim include channel selection in logs
                     percentage_selected_log.append(percentage_selected)
 
             valid_ave_loss = statistics.mean(valid_ave_loss)
             static_ave_iou = statistics.mean(static_ave_iou)
             lane_ave_iou = statistics.mean(lane_ave_iou)
             dynamic_ave_iou = statistics.mean(dynamic_ave_iou)
-            #shilpa include channel selection in logs
+            #CooperTrim include channel selection in logs
             percentage_selected_log = statistics.mean(percentage_selected_log)
 
             print('At epoch %d, the validation loss is %f,'
                   'the dynamic iou is %f, t'
                   'he road iou is %f'
                   'the lane ious is %f'
-                  #shilpa include channel selection in logs
+                  #CooperTrim include channel selection in logs
                   ', the channel selection is %f'  % (epoch,
                                            valid_ave_loss,
                                            dynamic_ave_iou,
                                            static_ave_iou,
                                            lane_ave_iou,
-                                           #shilpa include channel selection in logs
+                                           #CooperTrim include channel selection in logs
                                            percentage_selected_log))
 
             writer.add_scalar('Validate_Loss', valid_ave_loss, epoch)
             writer.add_scalar('Dynamic_Iou', dynamic_ave_iou, epoch)
             writer.add_scalar('Road_IoU', static_ave_iou, epoch)
             writer.add_scalar('Lane_IoU', lane_ave_iou, epoch)
-            #shilpa include channel selection in logs
+            #CooperTrim include channel selection in logs
             writer.add_scalar('Percentage_Selected', percentage_selected_log, epoch)
 
         if epoch % hypes['train_params']['save_freq'] == 0:

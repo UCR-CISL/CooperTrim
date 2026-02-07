@@ -73,7 +73,7 @@ model:
       mlp_dim: 256
       dropout: 0.1
     cvm:
-      #shilpa channel select
+      #CooperTrim channel select
       channel_select:
         channel_dim: 128
         spatial_dim: 32
@@ -110,7 +110,7 @@ loss:
     l_weights: 4.0
     d_coe: 2.0
     s_coe: 1.0
-    #shilpa select threshold
+    #CooperTrim select threshold
     select_channel_wt: 0.001
 
 optimizer:

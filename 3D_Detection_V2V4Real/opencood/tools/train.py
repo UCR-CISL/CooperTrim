@@ -17,7 +17,7 @@ from opencood.tools import train_utils
 from opencood.tools import multi_gpu_utils
 from opencood.data_utils.datasets import build_dataset
 # from opencood.tools import train_utils
-#shilpa
+#CooperTrim
 from opencood.tools import train_utils , infrence_utils
 from opencood.utils import eval_utils  
 
@@ -46,10 +46,10 @@ def main():
     opencood_train_dataset = build_dataset(hypes, visualize=False, train=True)
     opencood_validate_dataset = build_dataset(hypes, visualize=False, train=False)
 
-    #shilpa
+    #CooperTrim
     ## Added for IOU
     opts = argparse.Namespace(
-        #shilpa train
+        #CooperTrim train
         model_dir     = r"/data/HangQiu/proj/AutoNetSelection/v2vr_det_cobevt_autonet",
         fusion_method = 'intermediate',
         global_sort_detections = False
@@ -206,10 +206,10 @@ def main():
 
         if epoch % hypes['train_params']['eval_freq'] == 0:
             valid_ave_loss = []
-            #shilpa autonet
+            #CooperTrim autonet
             percentage_selected_log = []
 
-            #shilpa
+            #CooperTrim
             # Create the dictionary for evaluation.
             # also store the confidence score for each prediction
             result_stat = {0.3: {'tp': [], 'fp': [], 'gt': 0, 'score': []},                
@@ -227,7 +227,7 @@ def main():
                     final_loss = criterion(ouput_dict,
                                            batch_data['ego']['label_dict'], percentage_selected, epoch)
                     valid_ave_loss.append(final_loss.item())
-                    #shilpa autonet
+                    #CooperTrim autonet
                     percentage_selected_log.append(percentage_selected)
 
                     ## From eval script
@@ -240,7 +240,7 @@ def main():
                             iou_iter_data = next(iou_iter)
                         iou_iter_data = train_utils.to_device(iou_iter_data, device)
 
-                        #shilpa autonet
+                        #CooperTrim autonet
                         # pred_box_tensor, pred_score, gt_box_tensor = \
                         # infrence_utils.inference_intermediate_fusion(iou_iter_data,
                         #                                             model,
@@ -266,13 +266,13 @@ def main():
             # print('At epoch %d, the validation loss is %f' % (epoch,
             #                                                   valid_ave_loss))
             # writer.add_scalar('Validate_Loss', valid_ave_loss, epoch)
-            #shilpa autonet
+            #CooperTrim autonet
             # print(f"Percentage selected log: {percentage_selected_log}")
             flattened_log = [item[0] for item in percentage_selected_log if isinstance(item, list) and len(item) > 0]
             # Calculate mean of the flattened list, default to 0.0 if empty
             avg_percentage_selected = statistics.mean(flattened_log) if flattened_log else 0.0
             # avg_percentage_selected = statistics.mean(percentage_selected_log)
-            #shilpa autonet
+            #CooperTrim autonet
             # print('At epoch %d, the validation loss is %f' % (epoch,
             #                                                   valid_ave_loss))
             print('At epoch %d, the validation loss is %f, channel selection is %f' % (epoch,

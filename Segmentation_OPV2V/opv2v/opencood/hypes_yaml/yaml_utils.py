@@ -22,7 +22,7 @@ def load_yaml(file, opt=None):
     param : dict
         A dictionary that contains defined parameters.
     """
-    #shilpa eval
+    #CooperTrim eval
     if opt and opt.model_dir:
         # print("Loading config from: {}".format(opt.model_dir))
         file = os.path.join(opt.model_dir, 'config.yaml')

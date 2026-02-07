@@ -27,7 +27,7 @@ class CrossAttentionMaskPredictorAdaptive(nn.Module):
         self.output_layer = nn.Linear(num_channels, num_channels)
         self.sigmoid = nn.Sigmoid()  # For binary mask probabilities
 
-        #shilpa adapt learn parameter
+        #CooperTrim adapt learn parameter
         self.threshold = nn.Parameter(torch.tensor(0.5))  # Initialize threshold at 0.5
 
     def forward(self, std_dev, features):
@@ -63,7 +63,7 @@ class CrossAttentionMaskPredictorAdaptive(nn.Module):
         mask_logits = self.output_layer(context)  # Shape: [batch_size, num_channels]
         mask = self.sigmoid(mask_logits)  # Apply sigmoid for probabilities
 
-        #shilpa adapt learn parameter
+        #CooperTrim adapt learn parameter
         l_threshold = torch.sigmoid(self.threshold)
         mask = (mask > l_threshold).float()
         

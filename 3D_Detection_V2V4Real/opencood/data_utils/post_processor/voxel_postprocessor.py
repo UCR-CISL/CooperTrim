@@ -265,14 +265,14 @@ class VoxelPostprocessor(BasePostprocessor):
             anchor_box = cav_content['anchor_box']
 
             # classification probability
-            #shilpa autonet
+            #CooperTrim autonet
             # prob = output_dict[cav_id]['psm']
             prob = output_dict[cav_id][0]['psm']
             prob = F.sigmoid(prob.permute(0, 2, 3, 1))
             prob = prob.reshape(1, -1)
 
             # regression map
-            #shilpa autonet
+            #CooperTrim autonet
             # reg = output_dict[cav_id]['rm']
             reg = output_dict[cav_id][0]['rm']
 

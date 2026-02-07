@@ -10,7 +10,7 @@ from opencood.models.sub_modules.naive_compress import NaiveCompressor
 from opencood.models.fuse_modules.swap_fusion_modules import \
     SwapFusionEncoder
 from opencood.models.fuse_modules.fuse_utils import regroup
-#shilpa autonet
+#CooperTrim autonet
 import numpy as np
 from opencood.models.sub_modules.channel_select_attention import CrossAttentionMaskPredictorAdaptive
 import os
@@ -50,16 +50,16 @@ class PointPillarCoBEVT(nn.Module):
         if args['backbone_fix']:
             self.backbone_fix()
 
-        #shilpa autonet
-        #shilpa channel select adapt
+        #CooperTrim autonet
+        #CooperTrim channel select adapt
         num_channel_select = 256
         num_spatial_select_h = 96 #48 #config['channel_select']['spatial_dim']
         num_spatial_select_w = 352 #176
         self.channel_select_model = CrossAttentionMaskPredictorAdaptive(num_channels=num_channel_select, spatial_dim_h=num_spatial_select_h, spatial_dim_w=num_spatial_select_w)
 
-        #shilpa autonet
+        #CooperTrim autonet
         self.prev_fused_feature = None
-        # shilpa learnable confidence level
+        # CooperTrim learnable confidence level
         initial_confidence_level = 50  # Initial value for the confidence level
         self.confidence_level = nn.Parameter(torch.tensor(initial_confidence_level, dtype=torch.float32))
 
@@ -89,7 +89,7 @@ class PointPillarCoBEVT(nn.Module):
         for p in self.reg_head.parameters():
             p.requires_grad = False
 
-    #shilpa autonet
+    #CooperTrim autonet
     def divide_batches(self, spatial_features_2d, record_len):
         """
         Divide spatial_features_2d into batches based on record_len.
@@ -112,8 +112,8 @@ class PointPillarCoBEVT(nn.Module):
 
         return divided_batches
 
-    #shilpa autonet
-    #shilpa conformal prediction
+    #CooperTrim autonet
+    #CooperTrim conformal prediction
     def compute_conformal_uncertainty(self, reference_data, current_data, confidence_level=90):
         """
         Compute uncertainty using conformal prediction based on reference tensor.
@@ -135,7 +135,7 @@ class PointPillarCoBEVT(nn.Module):
         # Step 2: Determine the quantile threshold (e.g., 90th percentile for 90% confidence)
         conformity_scores_np = conformity_scores.detach().cpu().numpy()
 
-        # shilpa learnable confidence level
+        # CooperTrim learnable confidence level
         # quantile_threshold = np.percentile(conformity_scores_np, confidence_level)  # Convert to numpy for quantile calculation
         quantile_threshold = np.percentile(conformity_scores_np, confidence_level.item())
 
@@ -158,7 +158,7 @@ class PointPillarCoBEVT(nn.Module):
         # return quantile_threshold, uncertainty_flags, uncertainty_intervals
         return uncertainty_intervals
 
-    #shilpa autonet
+    #CooperTrim autonet
     def create_request(self, divided_batches, channel_select_model, epoch, prev_fused_feature=None, validation=False):
         """
         Process divided_batches to integrate orig_bev_data_from_all_cav and select BEV points.
@@ -212,7 +212,7 @@ class PointPillarCoBEVT(nn.Module):
             #         # Check if prev_fused_feature is provided
             #         if prev_fused_feature is not None:
                         # uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=50).unsqueeze(0)
-                    #     # shilpa learnable confidence level
+                    #     # CooperTrim learnable confidence level
                     uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=self.confidence_level).unsqueeze(0)
                         
 
@@ -229,7 +229,7 @@ class PointPillarCoBEVT(nn.Module):
             else:
                     percentage_data_to_request = 1.0
                     num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
-                    #shilpa Transmission 1 - this data is transmitted from ego to CAV for request
+                    #CooperTrim Transmission 1 - this data is transmitted from ego to CAV for request
                     # random_indices = torch.randperm(num_spatial_indices, device=flattened_data.device)[:num_random_indices]  # Random 30% indices
                     random_indices = torch.arange(num_spatial_indices, device=data_at_index_0.device)[:num_random_indices]
                     self.prev_avg_entropy = 1
@@ -247,7 +247,7 @@ class PointPillarCoBEVT(nn.Module):
 
         return processed_batches
     
-    #shilpa autonet
+    #CooperTrim autonet
     def create_response(self, processed_batches):
         """
         Integrates processed_batches into a new tensor with transformations and replication.
@@ -335,7 +335,7 @@ class PointPillarCoBEVT(nn.Module):
         if self.shrink_flag:
             spatial_features_2d = self.shrink_conv(spatial_features_2d)
 
-        #shilpa autonet
+        #CooperTrim autonet
         # print(f"spatial_features_2d shape = {spatial_features_2d.shape}")
         target_device = spatial_features_2d.device
         # Divide spatial_features_2d into batches
@@ -364,7 +364,7 @@ class PointPillarCoBEVT(nn.Module):
                           new_w=regroup_feature.shape[4])
 
         fused_feature = self.fusion_net(regroup_feature, com_mask)
-        #shilpa autonet
+        #CooperTrim autonet
         self.prev_fused_feature = fused_feature[0]  # Store ego fused feature for next iteration
 
         psm = self.cls_head(fused_feature)
@@ -373,7 +373,7 @@ class PointPillarCoBEVT(nn.Module):
         output_dict = {'psm': psm,
                        'rm': rm}
 
-        #shilpa autonet
+        #CooperTrim autonet
         # Initialize empty lists to store the values
         select_thresholds = []
         percentage_selected = []

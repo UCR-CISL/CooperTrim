@@ -309,7 +309,7 @@ class CrossViewModule(nn.Module):
         self.layers = nn.ModuleList(layers)
         
 
-    #shilpa channel entropy
+    #CooperTrim channel entropy
     def forward(self, batch):
         b, l, n, _, _, _ = batch['inputs'].shape
         # print("orig run")

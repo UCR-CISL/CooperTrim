@@ -11,9 +11,9 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_transformation_matrix
 from opencood.models.sub_modules.convgru import ConvGRU
 
-#shilpa channel select adapt
+#CooperTrim channel select adapt
 from opencood.models.sub_modules.channel_select_attention import CrossAttentionMaskPredictor
-#shilpa channel select adapt SA
+#CooperTrim channel select adapt SA
 # from opencood.models.sub_modules.channel_select_self_attention import SelfAttentionMaskPredictor
 import os
 
@@ -44,10 +44,10 @@ class V2VNetFusion(nn.Module):
                                 bias=True,
                                 return_all_layers=False)
         self.mlp = nn.Linear(in_channels, in_channels)
-        #shilpa channel selection
+        #CooperTrim channel selection
         self.first_frame = True
 
-        #shilpa channel select adapt
+        #CooperTrim channel select adapt
         # num_channel_select = args['channel_select']['channel_dim']
         # num_spatial_select = args['channel_select']['spatial_dim']
         # self.channel_select_model = CrossAttentionMaskPredictor(num_channels=num_channel_select, spatial_dim=num_spatial_select)
@@ -57,7 +57,7 @@ class V2VNetFusion(nn.Module):
         split_x = torch.tensor_split(x, cum_sum_len[:-1].cpu())
         return split_x
 
-     #shilpa channel selection
+     #CooperTrim channel selection
     def process_features(self, percentage_to_request, ego_agent_feature, neighbor_feature):
         """
         Process ego_agent_feature and neighbor_feature based on the given steps.
@@ -71,21 +71,21 @@ class V2VNetFusion(nn.Module):
         """
       
         ego_agent_sample = ego_agent_feature
-        #shilpa channel select
+        #CooperTrim channel select
         std_dev = torch.std(ego_agent_sample, dim=(1, 2))  # Shape: [C]
         top_k = int(percentage_to_request * std_dev.numel())  # 80% of channels
         _, top_k_indices = torch.topk(std_dev, top_k)  # Indices of top 80% std-dev channels
 
-        #shilpa random select
+        #CooperTrim random select
         # num_channels = ego_agent_sample.shape[0]  # Number of channels (C)
         # top_k = int(percentage_to_request * num_channels)  # e.g., 80% of channels
         # top_k_indices = torch.randperm(num_channels)[:top_k]  # Randomly shuffle and select top_k indices
 
-        #shilpa channel select adapt
+        #CooperTrim channel select adapt
         # std_dev = torch.std(ego_agent_sample, dim=(1, 2))
         # std_dev = std_dev.unsqueeze(0)  
         # predicted_mask = self.channel_select_model(std_dev, ego_agent_sample.unsqueeze(0))  # Shape: [batch_size, 128]
-        # #shilpa channel select adapt SA
+        # #CooperTrim channel select adapt SA
         # # predicted_mask = self.channel_select_model(data_at_index_0.unsqueeze(0))  # Shape: [batch_size, 128]
         # top_k_indices = (predicted_mask > 0.5).float().to(ego_agent_sample.device)  # Threshold at 0.5
         # top_k_indices = top_k_indices.squeeze(0)
@@ -195,7 +195,7 @@ class V2VNetFusion(nn.Module):
                     neighbor_feature = warp_affine(batch_node_feature,
                                                    current_t_matrix,
                                                    (H, W))
-                    #shilpa channel selection
+                    #CooperTrim channel selection
                     ego_feat = batch_node_feature[i]
                     if self.first_frame:
                         percentage_to_request = 1.0

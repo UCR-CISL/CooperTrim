@@ -175,7 +175,7 @@ class CrossViewTransformerWhere2comm(nn.Module):
         # B*L, C, H, W
         x = x.squeeze(1)
 
-        #shilpa where2comm
+        #CooperTrim where2comm
         # pp =x[0].unsqueeze(0)
         # pp = self.decoder(pp.unsqueeze(0))
         # pp = rearrange(pp, 'b l c h w -> (b l) c h w')

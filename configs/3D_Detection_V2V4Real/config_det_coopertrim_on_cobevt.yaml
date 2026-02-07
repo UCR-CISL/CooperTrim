@@ -15,9 +15,9 @@ wild_setting:
 
 yaml_parser: "load_point_pillar_params"
 train_params:
-  batch_size: &batch_size 1 #4 #shilpa
-  epoches: &epoches 100 #60 #shilpa
-  eval_freq: 1 #2 #shilpa
+  batch_size: &batch_size 1 #4 #CooperTrim
+  epoches: &epoches 100 #60 #CooperTrim
+  eval_freq: 1 #2 #CooperTrim
   save_freq: 1
   max_cav: &max_cav 2
 
@@ -35,7 +35,7 @@ preprocess:
     max_voxel_train: 32000
     max_voxel_test: 70000
   # lidar range for each individual cav.
-  cav_lidar_range: &cav_lidar [-102.4, -38.4, -5, 102.4, 38.4, 3] #[-140.8, -38.4, -5, 140.8, 38.4, 3] #shilpa
+  cav_lidar_range: &cav_lidar [-102.4, -38.4, -5, 102.4, 38.4, 3] #[-140.8, -38.4, -5, 140.8, 38.4, 3] #CooperTrim
 
 data_augment:
   - NAME: random_world_flip

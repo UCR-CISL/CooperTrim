@@ -206,7 +206,7 @@ def main():
 
         if epoch % hypes['train_params']['eval_freq'] == 0:
             valid_ave_loss = []
-            #shilpa autonet
+            #CooperTrim autonet
             percentage_selected_log = []
 
             # Create the dictionary for evaluation.
@@ -226,7 +226,7 @@ def main():
                     final_loss = criterion(ouput_dict,
                                            batch_data['ego']['label_dict'], percentage_selected, epoch)
                     valid_ave_loss.append(final_loss.item())
-                    #shilpa autonet
+                    #CooperTrim autonet
                     percentage_selected_log.append(percentage_selected)
 
                     ## From eval script
@@ -257,13 +257,13 @@ def main():
                                   opts.model_dir,
                                   opts.global_sort_detections,fromTrain=True,writer=writer,epoch=epoch)
             valid_ave_loss = statistics.mean(valid_ave_loss)
-            #shilpa autonet
+            #CooperTrim autonet
             # print(f"Percentage selected log: {percentage_selected_log}")
             flattened_log = [item[0] for item in percentage_selected_log if isinstance(item, list) and len(item) > 0]
             # Calculate mean of the flattened list, default to 0.0 if empty
             avg_percentage_selected = statistics.mean(flattened_log) if flattened_log else 0.0
             # avg_percentage_selected = statistics.mean(percentage_selected_log)
-            #shilpa autonet
+            #CooperTrim autonet
             # print('At epoch %d, the validation loss is %f' % (epoch,
             #                                                   valid_ave_loss))
             print('At epoch %d, the validation loss is %f, channel selection is %f' % (epoch,

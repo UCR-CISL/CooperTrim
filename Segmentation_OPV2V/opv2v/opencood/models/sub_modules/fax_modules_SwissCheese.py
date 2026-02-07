@@ -7,21 +7,21 @@ from einops import rearrange, repeat, reduce
 from torchvision.models.resnet import Bottleneck
 from typing import List
 
-#shilpa entropy
+#CooperTrim entropy
 import numpy as np
-#shilpa channel select adapt
+#CooperTrim channel select adapt
 from opencood.models.sub_modules.channel_select_attention import CrossAttentionMaskPredictor, CrossAttentionMaskPredictorAdaptive
 # from opencood.models.sub_modules.channel_select_attention_ppo import CrossAttentionMaskPredictor
 import os
 
-#shilpa channel select adapt SA
+#CooperTrim channel select adapt SA
 # from opencood.models.sub_modules.channel_select_self_attention import SelfAttentionMaskPredictor
 # import os
 
-#shilpa grad cam
+#CooperTrim grad cam
 from opencood.models.sub_modules.inference_grad_cam import process_feature_visualization
 
-#shilpa epsilon greedy
+#CooperTrim epsilon greedy
 import random
 
 ResNetBottleNeck = lambda c: Bottleneck(c, c // 4)
@@ -654,10 +654,10 @@ class FAXModule_SwissCheese(nn.Module):
             if i < len(features)-1:
                 down_sample_block = self.downsample_layers[i]
                 x = down_sample_block(x)
-        # shilpa transform sa fix
+        # CooperTrim transform sa fix
         x = self.self_attn(x)
 
-        # shilpa select bev points to send to cav
+        # CooperTrim select bev points to send to cav
         orig_bev_data_from_all_cav = x
 
         # Implementing Fine-Grained Collaborative Attention Algorithm

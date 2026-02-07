@@ -520,7 +520,7 @@ class FAXModule(nn.Module):
         x = self.self_attn(x)
         x = rearrange(x, '(b l) ... -> b l ...', b=b, l=l)
 
-        # #shilpa dump eval
+        # #CooperTrim dump eval
         # # File path
         # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_cobevt_st_base.txt'
         # # Check if the file exists to determine the starting frame

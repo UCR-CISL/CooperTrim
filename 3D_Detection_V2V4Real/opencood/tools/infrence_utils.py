@@ -63,7 +63,7 @@ def inference_late_fusion(batch_data, model, dataset):
 
     return pred_box_tensor, pred_score, gt_box_tensor
 
-#shilpa autonet
+#CooperTrim autonet
 # def inference_early_fusion(batch_data, model, dataset):
 def inference_early_fusion(batch_data, model, dataset, epoch):
     """
@@ -85,7 +85,7 @@ def inference_early_fusion(batch_data, model, dataset, epoch):
     output_dict = OrderedDict()
     cav_content = batch_data['ego']
 
-    #shilpa autonet
+    #CooperTrim autonet
     output_dict['ego'] = model(cav_content, epoch, validation=True)
     # output_dict['ego'] = model(cav_content)
 
@@ -96,7 +96,7 @@ def inference_early_fusion(batch_data, model, dataset, epoch):
     return pred_box_tensor, pred_score, gt_box_tensor
 
 
-#shilpa autonet
+#CooperTrim autonet
 # def inference_intermediate_fusion(batch_data, model, dataset):
 def inference_intermediate_fusion(batch_data, model, dataset, epoch):
     """
@@ -115,7 +115,7 @@ def inference_intermediate_fusion(batch_data, model, dataset, epoch):
     gt_box_tensor : torch.Tensor
         The tensor of gt bounding box.
     """
-    #shilpa autonet
+    #CooperTrim autonet
     # return inference_early_fusion(batch_data, model, dataset)
     return inference_early_fusion(batch_data, model, dataset, epoch)
 

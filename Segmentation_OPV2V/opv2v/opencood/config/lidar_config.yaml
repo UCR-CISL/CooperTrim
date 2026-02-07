@@ -39,7 +39,7 @@ preprocess:
   # object evaluation range
   cav_lidar_range: &cav_lidar [-50, -50, -3, 50, 50, 1]
 
-#shilpa camera
+#CooperTrim camera
 # # anchor box related
 # postprocess:
 #   core_method: 'CameraBevPostprocessor' # VoxelPostprocessor, BevPostprocessor supported
@@ -49,7 +49,7 @@ preprocess:
 #   max_num: 100 # maximum number of objects in a single frame. use this number to make sure different frames has the same dimension in the same batch
 #   nms_thresh: 0.15
 
-#shilpa lidar
+#CooperTrim lidar
 # anchor box related
 postprocess:
   core_method: 'CameraBevPostprocessor'
@@ -82,7 +82,7 @@ model:
   core_method: corpbevt_lidar
   args:
 
-    #shilpa lidar
+    #CooperTrim lidar
     fax_fusion:
       input_dim: 256
       mlp_dim: 256
@@ -96,7 +96,7 @@ model:
     target: &target 'dynamic' # dynamic, static or both
     max_cav: *max_cav
 
-    #shilpa camera
+    #CooperTrim camera
     # encoder:
     #   num_layers: 34
     #   pretrained: true
@@ -105,7 +105,7 @@ model:
     #   id_pick: [1, 2, 3]
     #   resize: 0
 
-    #shilpa lidar
+    #CooperTrim lidar
     encoder:
       name: 'swint'
       num_layers: 34
@@ -117,7 +117,7 @@ model:
 
     compression: 0 # compression rate
 
-    #shilpa lidar
+    #CooperTrim lidar
     camera_neck:
       in_channels: [192, 384, 768]
       out_channels: 256
@@ -198,13 +198,13 @@ model:
           bias: false
         use_conv_for_no_stride: false
 
-    #shilpa camera
+    #CooperTrim camera
     # decoder:
     #   input_dim: 128
     #   num_layer: 3
     #   num_ch_dec: &decoder_block [32, 64, 128]
 
-   #shilpa camera
+   #CooperTrim camera
     # fax:
     #   dim: [128, 128, 128] # b, d, h w from resenet -> b 256 h w
     #   middle: [2, 2, 2] # middle conv
@@ -240,7 +240,7 @@ model:
       #   window_size: 32
 
 
-    #shilpa lidar
+    #CooperTrim lidar
     fax:
       dim: [256, 256, 256]
       middle: [2, 2, 2]
@@ -270,19 +270,19 @@ model:
         dropout: 0.2
         window_size: 64
 
-    #shilpa camera
+    #CooperTrim camera
     # sttf: &sttf
     #   resolution: 0.390625 # m/pixel
     #   downsample_rate: 8
     #   use_roi_mask: true
 
-    #shilpa lidar
+    #CooperTrim lidar
     sttf: &sttf
       resolution: 0.390625
       downsample_rate: 4
       use_roi_mask: true
 
-    #shilpa camera
+    #CooperTrim camera
     # fax_fusion:
     #   input_dim: 128
     #   mlp_dim: 256
@@ -293,7 +293,7 @@ model:
     #   depth: 3
     #   mask: true
 
-    #shilpa lidar
+    #CooperTrim lidar
     fax_image_fusion:
       input_dim: 256
       mlp_dim: 256
@@ -431,7 +431,7 @@ lr_scheduler:
 
 
     
-#shilpa camera   
+#CooperTrim camera   
 # loss:
 #   core_method: vanilla_seg_loss
 #   args:
@@ -441,7 +441,7 @@ lr_scheduler:
 #     d_coe: 2.0
 #     s_coe: 0.0
 
-#shilpa camera
+#CooperTrim camera
 # optimizer:
 #   core_method: AdamW
 #   lr: 2e-4

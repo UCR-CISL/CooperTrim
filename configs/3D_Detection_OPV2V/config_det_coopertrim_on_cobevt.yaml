@@ -160,9 +160,9 @@ preprocess:
   core_method: SpVoxelPreprocessor
 root_dir: /data/HangQiu/proj/autonet-RL/sub_OPV2V/train
 train_params:
-  batch_size: 1 #2 #shilpa
-  epoches: 100 #90 #shilpa
-  eval_freq: 1 #2 #shilpa
+  batch_size: 1 #2 #CooperTrim
+  epoches: 100 #90 #CooperTrim
+  eval_freq: 1 #2 #CooperTrim
   max_cav: 5
   save_freq: 1
 validate_dir: /data/HangQiu/proj/autonet-RL/sub_OPV2V/validate_sub #/home/cav/data/opv2v/test_culver_city

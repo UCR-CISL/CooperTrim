@@ -31,7 +31,7 @@ class CameraBevPostprocessor(BasePostprocessor):
             Uint 8 image with 3 channels.
         """
         bev_map = cv2.cvtColor(bev_map, cv2.COLOR_BGR2GRAY)
-        #shilpa
+        #CooperTrim
         bev_map = np.array(bev_map, dtype=float) / 255.
         bev_map[bev_map > 0] = 1
 

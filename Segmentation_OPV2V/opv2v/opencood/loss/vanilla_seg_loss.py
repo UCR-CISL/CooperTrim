@@ -15,23 +15,23 @@ class VanillaSegLoss(nn.Module):
         self.d_coe = args['d_coe']
         self.s_coe = args['s_coe']
         self.target = args['target']
-        #shilpa select threshold
+        #CooperTrim select threshold
         self.select_channel_wt = args['select_channel_wt'] if 'select_channel_wt' in args else 0.01
 
-        #shilpa cuda
+        #CooperTrim cuda
         self.loss_func_static = \
             nn.CrossEntropyLoss(
-                #shilpa cuda
+                #CooperTrim cuda
                 weight=torch.Tensor([1., self.s_weights, self.l_weights]).cuda())
         self.loss_func_dynamic = \
             nn.CrossEntropyLoss(
-                #shilpa cuda
+                #CooperTrim cuda
                 weight=torch.Tensor([1., self.d_weights]).cuda())
 
 
         self.loss_dict = {}
 
-    #shilpa select threshold
+    #CooperTrim select threshold
     # def forward(self, output_dict, gt_dict):
     def forward(self, output_dict, gt_dict, percentage_selected, epoch):    
         """
@@ -78,7 +78,7 @@ class VanillaSegLoss(nn.Module):
 
    
        #l5
-       #shilpa epsilon greedy
+       #CooperTrim epsilon greedy
         # if epoch % 10 == 0:
         #     # Dynamically scale the weight based on the percentage_selected
         #     # Scale select_channel_wt exponentially or linearly based on percentage_selected
@@ -103,9 +103,9 @@ class VanillaSegLoss(nn.Module):
 
      
         # print(f"Epoch: {epoch}, Select Channel Weight: {select_channel_wt}")
-        #shilpa lagrange loss L5
+        #CooperTrim lagrange loss L5
         total_loss = self.s_coe * static_loss + self.d_coe * dynamic_loss + select_channel_wt * (percentage_selected-4.0) # (1/(L1+L2))
-        #shilpa thresh loss L5
+        #CooperTrim thresh loss L5
         # total_loss = self.s_coe * static_loss + self.d_coe * dynamic_loss + select_channel_wt * percentage_selected
         self.loss_dict.update({'total_loss': total_loss,
                                'static_loss': static_loss,

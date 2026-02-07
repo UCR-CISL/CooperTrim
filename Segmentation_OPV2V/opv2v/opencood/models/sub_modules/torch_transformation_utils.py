@@ -96,7 +96,7 @@ def get_rotated_roi(shape, correction_matrix):
     # (B,L,1,H,W)
     x = torch.ones((B, L, 1, H, W)).to(correction_matrix.dtype).to(
         correction_matrix.device)
-    #shilpa fix transformation
+    #CooperTrim fix transformation
     # roi_mask, _ = warp_affine(x.reshape(-1, 1, H, W), correction_matrix,
     #                        dsize=(H, W), mode="nearest")
     # (B*L,1,H,W)
@@ -316,7 +316,7 @@ def convert_affinematrix_to_homography(A):
     H[..., -1, -1] += 1.0
     return H
 
-#shilpa
+#CooperTrim
 def warp_affine(
         src, M, dsize,
         mode='bilinear',

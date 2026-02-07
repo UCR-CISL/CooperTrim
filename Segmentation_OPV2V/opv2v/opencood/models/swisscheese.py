@@ -18,7 +18,7 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_transformation_matrix, warp_affine, get_roi_and_cav_mask, \
     get_discretized_transformation_matrix
 
-#shilpa bev dim match
+#CooperTrim bev dim match
 import torch.nn.functional as F
 
 
@@ -117,8 +117,8 @@ class SwissCheese(nn.Module):
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-        #shilpa - SA and CA performed both
-        #shilpa - bev is calculated inside fax, so need to get that in output, and send transformer matrix for sttf inside
+        #CooperTrim - SA and CA performed both
+        #CooperTrim - bev is calculated inside fax, so need to get that in output, and send transformer matrix for sttf inside
         x, select_threshold, percentage_selected = self.fax(batch_dict)
 
         # B*L, C, H, W
@@ -126,7 +126,7 @@ class SwissCheese(nn.Module):
 
        
         # compressor
-        #shilpa - to check during ablation study
+        #CooperTrim - to check during ablation study
         if self.compression:
             x = self.naive_compressor(x)
 
@@ -134,7 +134,7 @@ class SwissCheese(nn.Module):
         x, mask = regroup(x, record_len, self.max_cav)
         
         # perform feature spatial transformation,  B, max_cav, H, W, C
-        #shilpa
+        #CooperTrim
         x = self.sttf(x, transformation_matrix)
         com_mask = mask.unsqueeze(1).unsqueeze(2).unsqueeze(
             3) if not self.use_roi_mask \

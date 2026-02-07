@@ -17,7 +17,7 @@ from opencood.tools import train_utils
 from opencood.tools import multi_gpu_utils
 from opencood.data_utils.datasets import build_dataset
 # from opencood.tools import train_utils
-#shilpa
+#CooperTrim
 from opencood.tools import train_utils , infrence_utils
 from opencood.utils import eval_utils  
 
@@ -46,10 +46,10 @@ def main():
     opencood_train_dataset = build_dataset(hypes, visualize=False, train=True)
     opencood_validate_dataset = build_dataset(hypes, visualize=False, train=False)
 
-    #shilpa
+    #CooperTrim
     ## Added for IOU
     opts = argparse.Namespace(
-        #shilpa train
+        #CooperTrim train
         model_dir     = r"/data/HangQiu/proj/AutoNetSelection/v2vr_det_cobevt_baseline",
         fusion_method = 'intermediate',
         global_sort_detections = False
@@ -208,7 +208,7 @@ def main():
         if epoch % hypes['train_params']['eval_freq'] == 0:
             valid_ave_loss = []
 
-            #shilpa
+            #CooperTrim
             # Create the dictionary for evaluation.
             # also store the confidence score for each prediction
             result_stat = {0.3: {'tp': [], 'fp': [], 'gt': 0, 'score': []},                

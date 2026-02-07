@@ -16,14 +16,14 @@ class VanillaSegLoss(nn.Module):
         self.s_coe = args['s_coe']
         self.target = args['target']
 
-        #shilpa cuda
+        #CooperTrim cuda
         self.loss_func_static = \
             nn.CrossEntropyLoss(
-                #shilpa cuda
+                #CooperTrim cuda
                 weight=torch.Tensor([1., self.s_weights, self.l_weights]).cuda())
         self.loss_func_dynamic = \
             nn.CrossEntropyLoss(
-                #shilpa cuda
+                #CooperTrim cuda
                 weight=torch.Tensor([1., self.d_weights]).cuda())
 
         self.loss_dict = {}

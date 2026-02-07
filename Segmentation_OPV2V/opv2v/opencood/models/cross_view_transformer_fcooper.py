@@ -90,7 +90,7 @@ class CrossViewTransformerFcooper(nn.Module):
         self.seg_head = BevSegHead(self.target,
                                    config['seg_head_dim'],
                                    config['output_class'])
-        #shilpa prev feature for uncertainty improvement
+        #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = None
 
 
@@ -104,14 +104,14 @@ class CrossViewTransformerFcooper(nn.Module):
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-        #shilpa channel entropy
+        #CooperTrim channel entropy
         # x = self.cvm(batch_dict)
         # orig_bev_data_from_all_cav, selected_indices= self.cvm(batch_dict)
         orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.cvm(batch_dict, epoch, self.prev_fused_feature)
         
         x = orig_bev_data_from_all_cav
 
-        #shilpa max_cav change
+        #CooperTrim max_cav change
         # Number of records to keep
         # k = 1
         # if x.shape[0] > k:
@@ -122,7 +122,7 @@ class CrossViewTransformerFcooper(nn.Module):
 
         x, _ = regroup(x, record_len, self.max_cav)
 
-        #shilpa max_cav change
+        #CooperTrim max_cav change
         # identity_matrix = torch.eye(4)  # 4x4 identity matrix
         # transformation_matrix[0, k:] = identity_matrix
 
@@ -130,7 +130,7 @@ class CrossViewTransformerFcooper(nn.Module):
         x = rearrange(x, 'b l h w c -> b l c h w')
         n, c, h, w = orig_bev_data_from_all_cav.shape
 
-        #shilpa max_cav change
+        #CooperTrim max_cav change
         # n = record_len.item()
 
         max_cav = x.shape[1]  # max_cav = 5 (from x.shape)
@@ -168,7 +168,7 @@ class CrossViewTransformerFcooper(nn.Module):
         x = self.fusion_net(x)
         x = x.unsqueeze(1).permute(0, 1, 4, 2, 3)
 
-        #shilpa prev feature for uncertainty improvement
+        #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = x.squeeze(0).squeeze(0).clone()
 
         # dynamic head

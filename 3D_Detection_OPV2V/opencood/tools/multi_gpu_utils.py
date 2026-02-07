@@ -14,7 +14,7 @@ def get_dist_info():
 
 
 def init_distributed_mode(args):
-    #shilpa
+    #CooperTrim
     # print("SLURM Environment Variables:")
     # print("RANK:", os.environ.get("RANK"))
     # print("WORLD_SIZE:", os.environ.get("WORLD_SIZE"))

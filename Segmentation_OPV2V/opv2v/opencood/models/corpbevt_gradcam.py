@@ -18,13 +18,13 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_transformation_matrix, warp_affine, get_roi_and_cav_mask, \
     get_discretized_transformation_matrix
 
-#shilpa bev dim match
+#CooperTrim bev dim match
 # import torch.nn.functional as F
 
-#shilpa entropy
+#CooperTrim entropy
 # from scipy.stats import entropy
 
-#shilpa gradcam
+#CooperTrim gradcam
 # from torchcam.methods import GradCAM
 # from torchcam.utils import overlay_mask
 # import cv2
@@ -80,7 +80,7 @@ class STTF(nn.Module):
 class CorpBEVT(nn.Module):
     def __init__(self, config):
         super(CorpBEVT, self).__init__()
-        #shilpa max_cav change inference
+        #CooperTrim max_cav change inference
         self.max_cav = config['max_cav']
         # encoder params
         self.encoder = ResnetEncoder(config['encoder'])
@@ -101,7 +101,7 @@ class CorpBEVT(nn.Module):
         self.discrete_ratio = config['sttf']['resolution']
         self.use_roi_mask = config['sttf']['use_roi_mask']
         self.sttf = STTF(config['sttf'])
-        #shilpa
+        #CooperTrim
         # self.find_transformed_indices = STTF(config['sttf']).find_transformed_indices
 
         # spatial fusion
@@ -117,11 +117,11 @@ class CorpBEVT(nn.Module):
                                    config['seg_head_dim'],
                                    config['output_class'])
         
-        #shilpa entropy
+        #CooperTrim entropy
         # self.prev_avg_entropy = None
-        #shilpa prev feature for uncertainty improvement
+        #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = None
-        #shilpa gradcam
+        #CooperTrim gradcam
         # Initialization code remains unchanged...
         # self.gradcam = GradCAM(model=self.fusion_net, target_layer='target_layer_name')  # Replace with the actual target layer name
 
@@ -136,15 +136,15 @@ class CorpBEVT(nn.Module):
         x = self.encoder(x)
         batch_dict.update({'features': x})
       
-        #shilpa select threshold
-        #shilpa RL
+        #CooperTrim select threshold
+        #CooperTrim RL
         orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.fax(batch_dict, self.prev_fused_feature)
         # orig_bev_data_from_all_cav, selected_indices, channel_select_probabilities, percentage_selected, state = self.fax(batch_dict, ppo_agent=ppo_agent)
         
 
         # orig_bev_data_from_all_cav, selected_indices = self.fax(batch_dict)
 
-        # #shilpa request in bits
+        # #CooperTrim request in bits
         # # Convert each index to 7-bit binary and concatenate into one binary string
         # binary_representation = ''.join(format(idx.item(), '07b') for idx in selected_indices)
         # # Convert the binary string into a single integer
@@ -159,7 +159,7 @@ class CorpBEVT(nn.Module):
 
         x = orig_bev_data_from_all_cav
 
-        #shilpa max_cav change
+        #CooperTrim max_cav change
         # Number of records to keep
         # k = 1
         # if x.shape[0] > k:
@@ -169,7 +169,7 @@ class CorpBEVT(nn.Module):
         #     record_len = torch.tensor([k], device=x.device)
 
         x, _ = regroup(x, record_len, self.max_cav)
-        #shilpa max_cav change
+        #CooperTrim max_cav change
         # identity_matrix = torch.eye(4)  # 4x4 identity matrix
         # transformation_matrix[0, k:] = identity_matrix
         x = self.sttf(x, transformation_matrix)
@@ -177,7 +177,7 @@ class CorpBEVT(nn.Module):
         x = rearrange(x, 'b l h w c -> b l c h w')
 
         n, c, h, w = orig_bev_data_from_all_cav.shape
-        #shilpa max_cav change
+        #CooperTrim max_cav change
         # n = record_len.item()
         max_cav = x.shape[1]  # max_cav = 5 (from x.shape)
         batch_size = x.shape[0]
@@ -207,7 +207,7 @@ class CorpBEVT(nn.Module):
         x = replicated_data
         
         # compressor
-        #shilpa - to check during ablation study
+        #CooperTrim - to check during ablation study
         if self.compression:
             x = self.naive_compressor(x)
 
@@ -228,7 +228,7 @@ class CorpBEVT(nn.Module):
         
     
         x = self.fusion_net(x, com_mask)
-        #shilpa prev feature for uncertainty improvement
+        #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = x.squeeze(0).clone()
 
         x = x.unsqueeze(1)
@@ -240,6 +240,6 @@ class CorpBEVT(nn.Module):
         output_dict = self.seg_head(x, b, 1)
 
         
-        #shilpa select threshold
+        #CooperTrim select threshold
         return output_dict, select_threhold, percentage_selected
         # return output_dict, channel_select_probabilities, percentage_selected, state 

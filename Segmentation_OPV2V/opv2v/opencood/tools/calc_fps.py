@@ -67,7 +67,7 @@ def main():
                 start_event.record()
                 
                 batch_data = train_utils.to_device(batch_data, device)
-                # Shilpa select threshold
+                # CooperTrim select threshold
                 # output_dict, select_threshold, percentage_selected = model(batch_data['ego'], 0)
                 output_dict = model(batch_data['ego'])
                 

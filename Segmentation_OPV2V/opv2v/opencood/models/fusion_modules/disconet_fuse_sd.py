@@ -12,14 +12,14 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     warp_affine, get_rotated_roi
 from opencood.models.sub_modules.convgru import ConvGRU
 
-#shilpa channel select adapt
+#CooperTrim channel select adapt
 from opencood.models.sub_modules.channel_select_attention import CrossAttentionMaskPredictor, CrossAttentionMaskPredictorAdaptive
-#shilpa channel select adapt SA
+#CooperTrim channel select adapt SA
 # from opencood.models.sub_modules.channel_select_self_attention import SelfAttentionMaskPredictor
 import os
 import numpy as np
 
-#shilpa epsilon greedy
+#CooperTrim epsilon greedy
 import random
 
 
@@ -83,17 +83,17 @@ class DiscoNetFusion(nn.Module):
         self.mlp = nn.Linear(in_channels, in_channels)
         self.pixel_weighted_fusion = PixelWeightedFusionSoftmax(in_channels)
 
-        #shilpa channel selection
+        #CooperTrim channel selection
         self.first_frame = True
 
-        #shilpa channel select adapt
+        #CooperTrim channel select adapt
         # num_channel_select = args['channel_select']['channel_dim']
         # num_spatial_select = args['channel_select']['spatial_dim']
         # self.channel_select_model = CrossAttentionMaskPredictor(num_channels=num_channel_select, spatial_dim=num_spatial_select)
         # self.channel_select_model_adaptive = CrossAttentionMaskPredictorAdaptive(num_channels=num_channel_select, spatial_dim=num_spatial_select)
 
     
-        # shilpa learnable confidence level
+        # CooperTrim learnable confidence level
         # initial_confidence_level = 50  # Initial value for the confidence level
         # self.confidence_level = nn.Parameter(torch.tensor(initial_confidence_level, dtype=torch.float32))
     
@@ -105,7 +105,7 @@ class DiscoNetFusion(nn.Module):
     
        
     
-    #shilpa channel selection
+    #CooperTrim channel selection
     # def process_features(self, ego_agent_feature, neighbor_feature, epoch, prev_fused_feature=None):
     def process_features(self, percentage_to_request, ego_agent_feature, neighbor_feature):
         """
@@ -121,12 +121,12 @@ class DiscoNetFusion(nn.Module):
         # Step 1: Compute standard deviation and get top 80% indices
         ego_agent_sample = ego_agent_feature[0]  # Shape: [C, H, W]
 
-        # shilpa channel select
+        # CooperTrim channel select
         std_dev = torch.std(ego_agent_sample, dim=(1, 2))  # Shape: [C]
         top_k = int(percentage_to_request * std_dev.numel())  # 80% of channels
         _, top_k_indices = torch.topk(std_dev, top_k)  # Indices of top 80% std-dev channels
 
-        #shilpa random select
+        #CooperTrim random select
         # num_channels = ego_agent_sample.shape[0]  # Number of channels (C)
         # top_k = int(percentage_to_request * num_channels)  # e.g., 80% of channels
         # top_k_indices = torch.randperm(num_channels)[:top_k]  # Randomly shuffle and select top_k indices
@@ -201,7 +201,7 @@ class DiscoNetFusion(nn.Module):
                     ego_agent_feature = batch_node_feature[i].unsqueeze(
                         0).repeat(N, 1, 1, 1)
                     
-                    #shilpa channel selection
+                    #CooperTrim channel selection
                     if self.first_frame:
                         percentage_to_request = 1.0
                         self.first_frame = False

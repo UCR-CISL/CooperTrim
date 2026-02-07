@@ -75,7 +75,7 @@ model:
       depth: 3
       mask: true
     cvm:
-      #shilpa channel select
+      #CooperTrim channel select
       channel_select:
         channel_dim: 128
         spatial_dim: 32

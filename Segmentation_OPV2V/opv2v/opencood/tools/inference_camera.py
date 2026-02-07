@@ -58,7 +58,7 @@
 #             torch.cuda.synchronize()
 
 #             batch_data = train_utils.to_device(batch_data, device)
-#             #shilpa select threshold
+#             #CooperTrim select threshold
 #             # output_dict = model(batch_data['ego'])
 #             output_dict, select_threshold, percentage_selected = model(batch_data['ego'])
             
@@ -154,7 +154,7 @@ def main():
                 # torch.cuda.synchronize()
 
                 batch_data = train_utils.to_device(batch_data, device)
-                #shilpa select threshold
+                #CooperTrim select threshold
                 output_dict = model(batch_data['ego'])
                 # output_dict, select_threshold, percentage_selected = model(batch_data['ego'], 0)
                 

@@ -18,10 +18,10 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_transformation_matrix, warp_affine, get_roi_and_cav_mask, \
     get_discretized_transformation_matrix
 
-#shilpa bev dim match
+#CooperTrim bev dim match
 import torch.nn.functional as F
 
-#shilpa compression
+#CooperTrim compression
 import zlib
 import csv
 import os
@@ -111,7 +111,7 @@ class CorpBEVT(nn.Module):
                                    config['seg_head_dim'],
                                    config['output_class'])
         
-    #shilpa rebuttal compression
+    #CooperTrim rebuttal compression
     def quantize_tensor(self, tensor, factor):
         """
         Reduce precision of tensor values for lossy compression with a more aggressive approach.
@@ -268,8 +268,8 @@ class CorpBEVT(nn.Module):
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-        #shilpa - SA and CA performed both
-        #shilpa - bev is calculated inside fax, so need to get that in output, and send transformer matrix for sttf inside
+        #CooperTrim - SA and CA performed both
+        #CooperTrim - bev is calculated inside fax, so need to get that in output, and send transformer matrix for sttf inside
         x = self.fax(batch_dict)
 
         # # Step 1: Extract x[0], which has shape [1, 128, 32, 32]
@@ -283,7 +283,7 @@ class CorpBEVT(nn.Module):
         # B*L, C, H, W
         x = x.squeeze(1)
 
-        #shilpa rebuttal compression
+        #CooperTrim rebuttal compression
         factor = 32  
         # mode = "lossless"  # or "lossy"
         mode = "lossy" #"lossy"  # or "lossless"
@@ -293,7 +293,7 @@ class CorpBEVT(nn.Module):
 
        
         # compressor
-        #shilpa - to check during ablation study
+        #CooperTrim - to check during ablation study
         if self.compression:
             x = self.naive_compressor(x)
 
@@ -301,7 +301,7 @@ class CorpBEVT(nn.Module):
         x, mask = regroup(x, record_len, self.max_cav)
         
         # perform feature spatial transformation,  B, max_cav, H, W, C
-        #shilpa
+        #CooperTrim
         x = self.sttf(x, transformation_matrix)
         com_mask = mask.unsqueeze(1).unsqueeze(2).unsqueeze(
             3) if not self.use_roi_mask \

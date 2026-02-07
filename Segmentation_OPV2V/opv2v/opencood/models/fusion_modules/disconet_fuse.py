@@ -12,14 +12,14 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     warp_affine, get_rotated_roi
 from opencood.models.sub_modules.convgru import ConvGRU
 
-#shilpa channel select adapt
+#CooperTrim channel select adapt
 from opencood.models.sub_modules.channel_select_attention import CrossAttentionMaskPredictor, CrossAttentionMaskPredictorAdaptive
-#shilpa channel select adapt SA
+#CooperTrim channel select adapt SA
 # from opencood.models.sub_modules.channel_select_self_attention import SelfAttentionMaskPredictor
 import os
 import numpy as np
 
-#shilpa epsilon greedy
+#CooperTrim epsilon greedy
 import random
 
 
@@ -83,17 +83,17 @@ class DiscoNetFusion(nn.Module):
         self.mlp = nn.Linear(in_channels, in_channels)
         self.pixel_weighted_fusion = PixelWeightedFusionSoftmax(in_channels)
 
-        #shilpa channel selection
+        #CooperTrim channel selection
         self.first_frame = True
 
-        #shilpa channel select adapt
+        #CooperTrim channel select adapt
         num_channel_select = args['channel_select']['channel_dim']
         num_spatial_select = args['channel_select']['spatial_dim']
         self.channel_select_model = CrossAttentionMaskPredictor(num_channels=num_channel_select, spatial_dim=num_spatial_select)
         self.channel_select_model_adaptive = CrossAttentionMaskPredictorAdaptive(num_channels=num_channel_select, spatial_dim=num_spatial_select)
 
     
-        # shilpa learnable confidence level
+        # CooperTrim learnable confidence level
         initial_confidence_level = 50  # Initial value for the confidence level
         self.confidence_level = nn.Parameter(torch.tensor(initial_confidence_level, dtype=torch.float32))
     
@@ -103,7 +103,7 @@ class DiscoNetFusion(nn.Module):
         split_x = torch.tensor_split(x, cum_sum_len[:-1].cpu())
         return split_x
     
-     #shilpa conformal prediction
+     #CooperTrim conformal prediction
     # def compute_conformal_uncertainty(self, reference_data, current_data, confidence_level=90):
     #     """
     #     Compute uncertainty using conformal prediction based on reference tensor.
@@ -166,7 +166,7 @@ class DiscoNetFusion(nn.Module):
         # Step 2: Determine the quantile threshold (e.g., 90th percentile for 90% confidence)
         conformity_scores_np = conformity_scores.detach().cpu().numpy()
 
-        # shilpa learnable confidence level
+        # CooperTrim learnable confidence level
         # quantile_threshold = np.percentile(conformity_scores_np, confidence_level)  # Convert to numpy for quantile calculation
         quantile_threshold = np.percentile(conformity_scores_np, confidence_level.item())
 
@@ -190,7 +190,7 @@ class DiscoNetFusion(nn.Module):
         return uncertainty_intervals
     
     
-    #shilpa channel selection
+    #CooperTrim channel selection
     def process_features(self, ego_agent_feature, neighbor_feature, epoch, prev_fused_feature=None):
         """
         Process ego_agent_feature and neighbor_feature based on the given steps.
@@ -207,13 +207,13 @@ class DiscoNetFusion(nn.Module):
 
       
 
-        #shilpa epsilon greedy
+        #CooperTrim epsilon greedy
         epsilon = 0.1  # Exploration probability
         if epoch > 5 and random.random() > epsilon:  # Exploit with probability
 
         # if prev_fused_feature is not None:
             # uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, ego_agent_sample, confidence_level=50).unsqueeze(0)
-        #     # shilpa learnable confidence level
+        #     # CooperTrim learnable confidence level
             uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, ego_agent_sample, confidence_level=self.confidence_level).unsqueeze(0)
             # predicted_mask= self.channel_select_model(uncertainty_intervals, ego_agent_sample.unsqueeze(0))
             predicted_mask, select_threshold = self.channel_select_model_adaptive(uncertainty_intervals, ego_agent_sample.unsqueeze(0))
@@ -273,7 +273,7 @@ class DiscoNetFusion(nn.Module):
 
         batch_node_features = split_x
 
-        #shilpa channel selection
+        #CooperTrim channel selection
         # Initialize arrays to store select_threshold and percentage_selected
         all_select_thresholds = []
         all_percentage_selected = []
@@ -316,7 +316,7 @@ class DiscoNetFusion(nn.Module):
                     ego_agent_feature = batch_node_feature[i].unsqueeze(
                         0).repeat(N, 1, 1, 1)
                     
-                    #shilpa channel selection
+                    #CooperTrim channel selection
                     # if self.first_frame:
                     #     percentage_to_request = 1.0
                     #     self.first_frame = False
@@ -361,7 +361,7 @@ class DiscoNetFusion(nn.Module):
         # (B,C,H,W)
         out = self.mlp(out.permute(0, 2, 3, 1))
 
-        #shilpa channel selection
+        #CooperTrim channel selection
         # Calculate mean of select_threshold and percentage_selected
         mean_select_threshold = torch.mean(torch.tensor(all_select_thresholds))
         mean_percentage_selected = torch.mean(torch.tensor(all_percentage_selected))

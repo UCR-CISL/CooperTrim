@@ -40,7 +40,7 @@ class CrossViewTransformerDiscoNet(nn.Module):
         self.seg_head = BevSegHead(self.target,
                                    config['seg_head_dim'],
                                    config['output_class'])
-        #shilpa prev feature for uncertainty improvement
+        #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = None
 
     def forward(self, batch_dict,epoch):
@@ -62,7 +62,7 @@ class CrossViewTransformerDiscoNet(nn.Module):
         x, select_threshold, percentage_selected = self.fusion_net(x, record_len, pairwise_t_matrix, epoch, None, self.prev_fused_feature)
         x = x.unsqueeze(1).permute(0, 1, 4, 2, 3)
 
-         #shilpa prev feature for uncertainty improvement
+         #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = x.squeeze(0).squeeze(0).clone()
 
         # dynamic head
@@ -93,7 +93,7 @@ class CrossViewTransformerDiscoNet(nn.Module):
     #     x = self.fusion_net(x, record_len, pairwise_t_matrix)
     #     x = x.unsqueeze(1).permute(0, 1, 4, 2, 3)
 
-    #      #shilpa prev feature for uncertainty improvement
+    #      #CooperTrim prev feature for uncertainty improvement
     #     self.prev_fused_feature = x.squeeze(0).squeeze(0).clone()
 
     #     # dynamic head

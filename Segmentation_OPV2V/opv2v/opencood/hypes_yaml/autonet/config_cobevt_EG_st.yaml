@@ -68,7 +68,7 @@ model:
       num_ch_dec: &decoder_block [32, 64, 128]
 
     fax:
-      #shilpa channel select
+      #CooperTrim channel select
       channel_select:
         channel_dim: 128
         spatial_dim: 32

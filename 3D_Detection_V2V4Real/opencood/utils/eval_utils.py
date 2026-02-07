@@ -170,7 +170,7 @@ def eval_final_results(result_stat, save_path, range=""):
                       })
     yaml_utils.save_yaml(dump_dict, os.path.join(save_path, file_name))
 
-    #shilpa
+    #CooperTrim
     # print('The range is %s, '
     #       'The Average Precision at IOU 0.5 is %.3f, '
     #       'The Average Precision at IOU 0.7 is %.3f' % (range,  ap_50, ap_70))

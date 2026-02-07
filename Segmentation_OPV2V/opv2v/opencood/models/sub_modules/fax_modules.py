@@ -7,21 +7,21 @@ from einops import rearrange, repeat, reduce
 from torchvision.models.resnet import Bottleneck
 from typing import List
 
-#shilpa entropy
+#CooperTrim entropy
 import numpy as np
-#shilpa channel select adapt
+#CooperTrim channel select adapt
 from opencood.models.sub_modules.channel_select_attention import CrossAttentionMaskPredictor, CrossAttentionMaskPredictorAdaptive
 # from opencood.models.sub_modules.channel_select_attention_ppo import CrossAttentionMaskPredictor
 import os
 
-#shilpa channel select adapt SA
+#CooperTrim channel select adapt SA
 # from opencood.models.sub_modules.channel_select_self_attention import SelfAttentionMaskPredictor
 # import os
 
-#shilpa grad cam
+#CooperTrim grad cam
 from opencood.models.sub_modules.inference_grad_cam import process_feature_visualization
 
-#shilpa epsilon greedy
+#CooperTrim epsilon greedy
 import random
 
 ResNetBottleNeck = lambda c: Bottleneck(c, c // 4)
@@ -512,23 +512,23 @@ class FAXModule(nn.Module):
         self.downsample_layers = nn.ModuleList(downsample_layers)
         self.self_attn = Attention(dim[-1], **config['self_attn'])
 
-        #shilpa channel selection entropy
+        #CooperTrim channel selection entropy
         self.prev_avg_entropy = None
 
-        #shilpa channel select adapt
+        #CooperTrim channel select adapt
         num_channel_select = config['channel_select']['channel_dim']
         num_spatial_select = config['channel_select']['spatial_dim']
         self.channel_select_model = CrossAttentionMaskPredictor(num_channels=num_channel_select, spatial_dim=num_spatial_select)
         self.channel_select_model_adaptive = CrossAttentionMaskPredictorAdaptive(num_channels=num_channel_select, spatial_dim=num_spatial_select)
 
-        #shilpa channel select adapt SA
+        #CooperTrim channel select adapt SA
         # self.channel_select_model = SelfAttentionMaskPredictor(num_channels=num_channel_select, spatial_dim=num_spatial_select)
 
-        # shilpa learnable confidence level
+        # CooperTrim learnable confidence level
         initial_confidence_level = 50  # Initial value for the confidence level
         self.confidence_level = nn.Parameter(torch.tensor(initial_confidence_level, dtype=torch.float32))
 
-    #shilpa conformal prediction
+    #CooperTrim conformal prediction
     def compute_conformal_uncertainty(self, reference_data, current_data, confidence_level=90):
         """
         Compute uncertainty using conformal prediction based on reference tensor.
@@ -550,7 +550,7 @@ class FAXModule(nn.Module):
         # Step 2: Determine the quantile threshold (e.g., 90th percentile for 90% confidence)
         conformity_scores_np = conformity_scores.detach().cpu().numpy()
 
-        # shilpa learnable confidence level
+        # CooperTrim learnable confidence level
         # quantile_threshold = np.percentile(conformity_scores_np, confidence_level)  # Convert to numpy for quantile calculation
         quantile_threshold = np.percentile(conformity_scores_np, confidence_level.item())
 
@@ -574,12 +574,12 @@ class FAXModule(nn.Module):
         return uncertainty_intervals
     
     
-    # shilpa
+    # CooperTrim
     # def forward(self, batch, prev_fused_feature=None): #, ppo_agent=None):
 
 
-    #shilpa EPSILON GREEDY
-    #shilpa epsilon greedy
+    #CooperTrim EPSILON GREEDY
+    #CooperTrim epsilon greedy
     def forward(self, batch, epoch, prev_fused_feature=None):
         b, l, n, _, _, _ = batch['inputs'].shape
 
@@ -601,10 +601,10 @@ class FAXModule(nn.Module):
             if i < len(features)-1:
                 down_sample_block = self.downsample_layers[i]
                 x = down_sample_block(x)
-        #shilpa transform sa fix
+        #CooperTrim transform sa fix
         x = self.self_attn(x)
 
-        #shilpa select bev points to send to cav
+        #CooperTrim select bev points to send to cav
         #assume 30 % data to request
         orig_bev_data_from_all_cav = x
         
@@ -620,10 +620,10 @@ class FAXModule(nn.Module):
         num_spatial_indices = data_at_index_0.shape[0]
         select_threshold=None
 
-        # # shilpa channel entropy std uncertainty
+        # # CooperTrim channel entropy std uncertainty
         # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_cobevt_CA_dyn.txt'
 
-        #shilpa epsilon greedy
+        #CooperTrim epsilon greedy
         epsilon = 0.1  # Exploration probability
         if epoch > 20 and random.random() > epsilon:  # Exploit with probability
         # if self.prev_avg_entropy is not None:
@@ -631,18 +631,18 @@ class FAXModule(nn.Module):
                 # percentage_data_to_request= 0.05
                 # print(f"percentage_data_to_request: {percentage_data_to_request}")
 
-                #shilpa prev feature for uncertainty improvement
+                #CooperTrim prev feature for uncertainty improvement
                 # Check if prev_fused_feature is provided
                 if prev_fused_feature is not None:
                     # uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=50).unsqueeze(0)
-                #     # shilpa learnable confidence level
+                #     # CooperTrim learnable confidence level
                     uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=self.confidence_level).unsqueeze(0)
                     
 
                 # std_dev = data_at_index_0.std(dim=(1, 2)) 
                 # std_dev = std_dev.unsqueeze(0)               
 
-                #shilpa channel select adapt
+                #CooperTrim channel select adapt
                 # sorted_std_dev, sorted_indices = torch.sort(std_dev, descending=True)
                 # num_elements = std_dev.shape[0]  # Total number of elements (128 in this case)
                 # top_k_percent_count = int(num_elements * percentage_data_to_request)  # Calculate 80% of the elements
@@ -652,7 +652,7 @@ class FAXModule(nn.Module):
 
                 # Step 3: Forward Pass
 
-                #shilpa conformal prediction
+                #CooperTrim conformal prediction
                 # predicted_mask, select_threshold = self.channel_select_model_adaptive(std_dev, data_at_index_0.unsqueeze(0))  # Shape: [batch_size, 128]
                 # predicted_mask = self.channel_select_model(std_dev, data_at_index_0.unsqueeze(0)) 
                 # print("select_threshold:", select_threshold)
@@ -707,14 +707,14 @@ class FAXModule(nn.Module):
         else:
                 percentage_data_to_request = 1.0
                 num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
-                #shilpa Transmission 1 - this data is transmitted from ego to CAV for request
+                #CooperTrim Transmission 1 - this data is transmitted from ego to CAV for request
                 # random_indices = torch.randperm(num_spatial_indices, device=flattened_data.device)[:num_random_indices]  # Random 30% indices
                 random_indices = torch.arange(num_spatial_indices, device=data_at_index_0.device)[:num_random_indices]
                 self.prev_avg_entropy = 1
                 percentage_selected = 100.0
                 print(f"percentage_selected: {(percentage_selected):.2f}%")
 
-                #shilpa dump channel select
+                #CooperTrim dump channel select
                 # # File path
                 # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_cobevt_st_cp50.txt'
 
@@ -743,19 +743,19 @@ class FAXModule(nn.Module):
         # percentage_data_to_request = 0.05
         # # print(f"percentage_data_to_request: {percentage_data_to_request}")
         # num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
-        # #shilpa Transmission 1 - this data is transmitted from ego to CAV for request
+        # #CooperTrim Transmission 1 - this data is transmitted from ego to CAV for request
         # random_indices = torch.randperm(num_spatial_indices, device=flattened_data.device)[:num_random_indices]  # Random 30% indices
         # # random_indices = torch.arange(num_spatial_indices, device=flattened_data.device)[:num_random_indices]
         # self.prev_avg_entropy = 1
         # normalized_uncertainty = 1.0     
         
         
-        #shilpa channel entropy soft
+        #CooperTrim channel entropy soft
         return orig_bev_data_from_all_cav, random_indices, select_threshold, percentage_selected
         # return orig_bev_data_from_all_cav, random_indices
         # return orig_bev_data_from_all_cav, random_indices, channel_select_probabilities, percentage_selected, std_dev 
 
-    #shilpa epsilon greedy
+    #CooperTrim epsilon greedy
     # def forward(self, batch, epoch, prev_fused_feature=None):
     #     b, l, n, _, _, _ = batch['inputs'].shape
 
@@ -777,10 +777,10 @@ class FAXModule(nn.Module):
     #         if i < len(features)-1:
     #             down_sample_block = self.downsample_layers[i]
     #             x = down_sample_block(x)
-    #     #shilpa transform sa fix
+    #     #CooperTrim transform sa fix
     #     x = self.self_attn(x)
 
-    #     #shilpa select bev points to send to cav
+    #     #CooperTrim select bev points to send to cav
     #     #assume 30 % data to request
     #     orig_bev_data_from_all_cav = x
         
@@ -796,10 +796,10 @@ class FAXModule(nn.Module):
     #     num_spatial_indices = data_at_index_0.shape[0]
     #     select_threshold=None
 
-    #     # # shilpa channel entropy std uncertainty
+    #     # # CooperTrim channel entropy std uncertainty
     #     # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_cobevt_CA_dyn.txt'
 
-    #     #shilpa epsilon greedy
+    #     #CooperTrim epsilon greedy
     #     epsilon = 0.1  # Exploration probability
     #     if epoch > 20 and random.random() > epsilon:  # Exploit with probability
     #     # if self.prev_avg_entropy is not None:
@@ -807,18 +807,18 @@ class FAXModule(nn.Module):
     #             # percentage_data_to_request= 0.05
     #             # print(f"percentage_data_to_request: {percentage_data_to_request}")
 
-    #             #shilpa prev feature for uncertainty improvement
+    #             #CooperTrim prev feature for uncertainty improvement
     #             # Check if prev_fused_feature is provided
     #             if prev_fused_feature is not None:
     #                 # uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=50).unsqueeze(0)
-    #             #     # shilpa learnable confidence level
+    #             #     # CooperTrim learnable confidence level
     #                 uncertainty_intervals = self.compute_conformal_uncertainty(prev_fused_feature, data_at_index_0, confidence_level=self.confidence_level).unsqueeze(0)
                     
 
     #             # std_dev = data_at_index_0.std(dim=(1, 2)) 
     #             # std_dev = std_dev.unsqueeze(0)               
 
-    #             #shilpa channel select adapt
+    #             #CooperTrim channel select adapt
     #             # sorted_std_dev, sorted_indices = torch.sort(std_dev, descending=True)
     #             # num_elements = std_dev.shape[0]  # Total number of elements (128 in this case)
     #             # top_k_percent_count = int(num_elements * percentage_data_to_request)  # Calculate 80% of the elements
@@ -828,7 +828,7 @@ class FAXModule(nn.Module):
 
     #             # Step 3: Forward Pass
 
-    #             #shilpa conformal prediction
+    #             #CooperTrim conformal prediction
     #             # predicted_mask, select_threshold = self.channel_select_model_adaptive(std_dev, data_at_index_0.unsqueeze(0))  # Shape: [batch_size, 128]
     #             # predicted_mask = self.channel_select_model(std_dev, data_at_index_0.unsqueeze(0)) 
     #             # print("select_threshold:", select_threshold)
@@ -883,14 +883,14 @@ class FAXModule(nn.Module):
     #     else:
     #             percentage_data_to_request = 1.0
     #             num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
-    #             #shilpa Transmission 1 - this data is transmitted from ego to CAV for request
+    #             #CooperTrim Transmission 1 - this data is transmitted from ego to CAV for request
     #             # random_indices = torch.randperm(num_spatial_indices, device=flattened_data.device)[:num_random_indices]  # Random 30% indices
     #             random_indices = torch.arange(num_spatial_indices, device=data_at_index_0.device)[:num_random_indices]
     #             self.prev_avg_entropy = 1
     #             percentage_selected = 100.0
     #             print(f"percentage_selected: {(percentage_selected):.2f}%")
 
-    #             #shilpa dump channel select
+    #             #CooperTrim dump channel select
     #             # # File path
     #             # file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_cobevt_st_cp50.txt'
 
@@ -919,17 +919,17 @@ class FAXModule(nn.Module):
     #     # percentage_data_to_request = 0.05
     #     # # print(f"percentage_data_to_request: {percentage_data_to_request}")
     #     # num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
-    #     # #shilpa Transmission 1 - this data is transmitted from ego to CAV for request
+    #     # #CooperTrim Transmission 1 - this data is transmitted from ego to CAV for request
     #     # random_indices = torch.randperm(num_spatial_indices, device=flattened_data.device)[:num_random_indices]  # Random 30% indices
     #     # # random_indices = torch.arange(num_spatial_indices, device=flattened_data.device)[:num_random_indices]
     #     # self.prev_avg_entropy = 1
     #     # normalized_uncertainty = 1.0     
         
         
-    #     #shilpa channel entropy soft
+    #     #CooperTrim channel entropy soft
     #     return orig_bev_data_from_all_cav, random_indices, select_threshold, percentage_selected
 
-    #shilpa grad cam
+    #CooperTrim grad cam
     # Add this to your code after the forward function
     def visualize_selected_channels(self, orig_bev_data_from_all_cav, random_indices, output_dir, frame_counter=None):
         """

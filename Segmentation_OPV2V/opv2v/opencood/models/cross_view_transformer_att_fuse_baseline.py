@@ -14,7 +14,7 @@ from opencood.models.sub_modules.torch_transformation_utils import \
     get_discretized_transformation_matrix
 from opencood.models.sub_modules.bev_seg_head import BevSegHead
 
-#shilpa compression
+#CooperTrim compression
 import zlib
 import csv
 import os
@@ -96,7 +96,7 @@ class CrossViewTransformerAttFuse(nn.Module):
                                    config['seg_head_dim'],
                                    config['output_class'])
 
-    #shilpa rebuttal compression
+    #CooperTrim rebuttal compression
     def quantize_tensor(self, tensor, factor):
         """
         Reduce precision of tensor values for lossy compression with a more aggressive approach.
@@ -259,7 +259,7 @@ class CrossViewTransformerAttFuse(nn.Module):
         # B*L, C, H, W
         x = x.squeeze(1)
 
-        #shilpa rebuttal compression
+        #CooperTrim rebuttal compression
         factor = 32  
         # mode = "lossless"  # or "lossy"
         mode = "lossy" #"lossy"  # or "lossless"

@@ -86,7 +86,7 @@ class NaiveDecoder(nn.Module):
             x = self.convs[("norm", i, 1)](x)
             x = self.convs[("relu", i, 1)](x)
 
-            #shilpa bev dim match to image size
+            #CooperTrim bev dim match to image size
             # Additional upsampling step
             # if i == 0:  # Add an extra upsampling step at the last layer
             #     x = self.upsample(x)

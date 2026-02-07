@@ -91,7 +91,7 @@ class CrossViewTransformerSwapFuse(nn.Module):
         self.seg_head = BevSegHead(self.target,
                                    config['seg_head_dim'],
                                    config['output_class'])
-        #shilpa prev feature for uncertainty improvement
+        #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = None
 
     def forward(self, batch_dict):
@@ -104,7 +104,7 @@ class CrossViewTransformerSwapFuse(nn.Module):
 
         x = self.encoder(x)
         batch_dict.update({'features': x})
-         #shilpa channel entropy
+         #CooperTrim channel entropy
         # x = self.cvm(batch_dict)
         # orig_bev_data_from_all_cav, selected_indices = self.cvm(batch_dict)
         orig_bev_data_from_all_cav, selected_indices, select_threhold, percentage_selected = self.cvm(batch_dict, self.prev_fused_feature)
@@ -147,7 +147,7 @@ class CrossViewTransformerSwapFuse(nn.Module):
         x = rearrange(x, 'b l h w c -> b l c h w')
         x = self.fusion_net(x, com_mask)
 
-        #shilpa prev feature for uncertainty improvement
+        #CooperTrim prev feature for uncertainty improvement
         self.prev_fused_feature = x.squeeze(0).clone()
         
         x = x.unsqueeze(1)
