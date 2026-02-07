@@ -178,7 +178,7 @@ For Detection Tasks:
 python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
 ```
 
-
+### Pretrained models: [Model Link](https://huggingface.co/shilpa2301/CooperTrim)
 
 ## Tutorials
 We have a series of tutorials to help you understand OpenCOOD more. Please check the series of our [tutorials](https://opencood.readthedocs.io/en/latest/md_files/config_tutorial.html).
@@ -187,10 +187,12 @@ We have a series of tutorials to help you understand OpenCOOD more. Please check
 ## Citation
  If you are using our CooperTrim framework for your research, please cite the following paper:
  ```bibtex
-@inproceedings{mukh2025coopertrim,
-  author = {Shilpa Mukhopadhyay, Amit Roy-Chowdhury, Hang Qiu},
-  title = {COOPERTRIM: Adaptive Data Selection for Uncertainty-Aware Cooperative Perception},
-  booktitle = {Submitted to 2025 IEEE International Conference on Learning Representations (ICLR)},
-  year = {2025}}
+@inproceedings{mukh2026coopertrim,
+  title={COOPERTRIM: Adaptive Data Selection for Uncertainty-Aware Cooperative Perception},
+  author={Shilpa Mukhopadhyay, Amit Roy-Chowdhury, Hang Qiu},
+  booktitle={International Conference on Learning Representations},
+  year={2026},
+  url={https://openreview.net/forum?id=8NgKNuHRiH}
+}
 ```
 
