@@ -1,4 +1,4 @@
-# Unbiased Scene Graph Generation in Videos 
+# COOPERTRIM: Adaptive Data Selection For Uncertainty-Aware Cooperative Perception 
 
 Official Pytorch Implementation of the framework **COOPERTRIM** proposed in our paper [**COOPERTRIM: Adaptive Data Selection For Uncertainty-Aware Cooperative Perception**]([https://arxiv.org/abs/2304.00733](https://openreview.net/pdf?id=8NgKNuHRiH)) accepted by **ICLR2026**.
 
