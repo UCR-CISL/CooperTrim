@@ -25,6 +25,8 @@ We present <strong>COOPERTRIM</strong>, an adaptive feature selection framework 
 <img src="Performance_improvement.png" width="600"  alt="">
 </p>
 
+COOPERTRIM Adaptively Requests Data based on Scene Complexity. Increased data requests align with higher scene complexity. Dynamic objects trigger higher request volumes (Frames 1200, 200, 1700), as do complex static elements like intersections (Frames 900, 250, 1600). Solid green lines indicate CooperTrim maintains high IoU despite reduced bandwidth compared to baseline CoBEVT (dashed green lines).
+
 ## News:
 - 12/20/2025: First version of CooperTrim released.
 ## Features
