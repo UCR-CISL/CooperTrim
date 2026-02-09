@@ -1,3 +1,12 @@
+# Unbiased Scene Graph Generation in Videos 
+
+Official Pytorch Implementation of the framework **COOPERTRIM** proposed in our paper [**COOPERTRIM: Adaptive Data Selection For Uncertainty-Aware Cooperative Perception**]([https://arxiv.org/abs/2304.00733](https://openreview.net/pdf?id=8NgKNuHRiH)) accepted by **ICLR2026**.
+
+[![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://shilpa2301.github.io/CooperTrim_Website/)
+
+
 <div align="center">
   <img src="images/System_architecture.png" width="600"/>
   <div>&nbsp;</div>
@@ -5,11 +14,8 @@
   <div>&nbsp;</div>
 </div>
 
-[![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
-[![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://shilpa2301.github.io/CooperTrim_Website/)
-
-CooperTrim is a <strong>Cooperative</strong> <strong>Perception</strong> framework with <strong>Uncertainty-Guided Adaptive</strong> intermediate feature selection for autonomous driving.
+## Overview
+We present <strong>COOPERTRIM</strong>, an adaptive feature selection framework in cooperative perception, which enhances representation learning through temporal uncertainty-driven feature selection for bandwidth-efficient, accurate perception in multi-agent systems. It addresses key challenges of relevance, identifying the most impactful features for downstream tasks, and quantity, determining the optimal point to stop sharing based on scene and task complexity. We employed an ϵ-greedy training method that optimizes the bandwidth performance balance by facilitating effective exploration and exploitation during training. 
 
 <p align="center">
 <img src="images/Adaptive_selection.png" width="600" alt="">
