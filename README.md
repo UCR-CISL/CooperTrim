@@ -4,7 +4,7 @@ Official Pytorch Implementation of the framework **COOPERTRIM** proposed in our 
 
 [![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
-[![Website](https://img.shields.io/badge/Project-Website-87CEEB)]([https://cisl.ucr.edu/CooperTrim/)
+[![Website](https://img.shields.io/badge/Project-Website-87CEEB)]([https://cisl.ucr.edu/CooperTrim)
 
 
 <div align="center">
