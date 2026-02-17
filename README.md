@@ -98,7 +98,7 @@ Before proceeding with visualization, training, or testing, ensure you have the 
 
 ```bash
 # Clone repo
-git clone https://github.com/shilpa2301/CooperTrim.git
+git clone https://github.com/UCR-CISL/CooperTrim.git
 
 cd CooperTrim
 ```
