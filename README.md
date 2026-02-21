@@ -5,6 +5,8 @@ Official Pytorch Implementation of the framework **COOPERTRIM** proposed in our 
 [![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://arxiv.org/abs/2602.13287)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://cisl.ucr.edu/CooperTrim)
+[![Model](https://img.shields.io/badge/HuggingFace-Model-orange)](https://huggingface.co/cisl-hf/CooperTrim)
+
 
 
 <div align="center">
@@ -187,7 +189,6 @@ For Detection Tasks:
 python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
 ```
 
-### Pretrained models: [Model Link](https://huggingface.co/shilpa2301/CooperTrim)
 
 ## Tutorials
 We have a series of tutorials to help you understand OpenCOOD more. Please check the series of our [tutorials](https://opencood.readthedocs.io/en/latest/md_files/config_tutorial.html).
