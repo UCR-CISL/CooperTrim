@@ -197,12 +197,10 @@ We have a series of tutorials to help you understand OpenCOOD more. Please check
 ## Citation
  If you are using our CooperTrim framework for your research, please cite the following paper:
  ```bibtex
-@inproceedings{mukh2026coopertrim,
-  title={COOPERTRIM: Adaptive Data Selection for Uncertainty-Aware Cooperative Perception},
-  author={Shilpa Mukhopadhyay, Amit Roy-Chowdhury, Hang Qiu},
-  booktitle={International Conference on Learning Representations},
-  year={2026},
-  url={https://openreview.net/forum?id=8NgKNuHRiH}
+@inproceedings{mukhopadhyaycoopertrim,
+  title={CooperTrim: Adaptive Data Selection for Uncertainty-Aware Cooperative Perception},
+  author={Mukhopadhyay, Shilpa and Roy-Chowdhury, Amit and Qiu, Hang},
+  booktitle={The Fourteenth International Conference on Learning Representations}
 }
 ```
 
