@@ -2,7 +2,7 @@
 
 Official Pytorch Implementation of the framework **COOPERTRIM** proposed in our paper [**COOPERTRIM: Adaptive Data Selection For Uncertainty-Aware Cooperative Perception**](https://openreview.net/pdf?id=8NgKNuHRiH) accepted by **ICLR2026**.
 
-[![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://arxiv.org/abs/2602.13287)
+[![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://cisl.ucr.edu/CooperTrim)
 [![Model](https://img.shields.io/badge/HuggingFace-Model-orange)](https://huggingface.co/cisl-hf/CooperTrim)
