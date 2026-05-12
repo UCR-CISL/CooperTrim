@@ -520,11 +520,11 @@ class CorpBEVT(nn.Module):
         selected_output_values_k = selected_output_values[:, :n, :, :]  # Shape: [1, k, 128, 307]
 
         #CooperTrim rebuttal compression
-        factor = 32  
-        # mode = "lossless"  # or "lossy"
-        mode = "lossy" #"lossy"  # or "lossless"
-        compression_filename = f"/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/coopertrim_st_compression_stats_{str(factor)}x_lossy.csv"
-        selected_output_values_k = self.compress_features(selected_output_values_k, factor=factor, csv_filename = compression_filename, mode = mode)
+        # factor = 32  
+        # # mode = "lossless"  # or "lossy"
+        # mode = "lossy" #"lossy"  # or "lossless"
+        # compression_filename = f"/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/coopertrim_st_compression_stats_{str(factor)}x_lossy.csv"
+        # selected_output_values_k = self.compress_features(selected_output_values_k, factor=factor, csv_filename = compression_filename, mode = mode)
                
         replicated_data = replicated_data.clone()
         replicated_data[:, :, selected_indices, :, :] = selected_output_values_k[:, :, :len(selected_indices), :, :]
