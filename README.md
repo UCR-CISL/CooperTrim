@@ -156,9 +156,9 @@ python coopertrim/tools/train_perception.py --hypes_yaml ${CONFIG_FILE} [--model
 ```
 
 Example:
-
+cd CooperTrim/Segmentation_OPV2V/opv2v/
 ```bash
-python coopertrim/tools/train_perception.py --hypes_yaml coopertrim/checkpoints_test/config.yaml --model_dir coopertrim/checkpoints_test
+ python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml
 ```
 For Detection tasks:
 ```
@@ -172,6 +172,17 @@ To train CooperTrim using multiple GPUs with distributed training:
 ```bash
 CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 --use_env coopertrim/tools/train_perception.py --hypes_yaml coopertrim/checkpoints_orig/config.yaml --model_dir coopertrim/checkpoints_orig
 ```
+### Some Useful Configs for Segmentation 
+```bash
+cd CooperTrim/Segmentation_OPV2V/opv2v/opencood/hypes_yaml/autonet
+```
+
+-*config_cobevt_EG_dyn.yaml/config_cobevt_EG_st.yaml*: COOPERTRIM main configs for cobevt
+-*config_disconet_EG_dyn.yaml/config_disconet_EG_st.yaml*: COOPERTRIM main configs for disconet
+-*config_attfuse_EG_dyn.yaml/config_attfuse_EG_st.yaml*: COOPERTRIM main configs for attfuse
+
+By default config_cobevt_EG_dyn.yaml is currently copied to config.yaml under checkpoints_test
+
 
 ### Testing
 
