@@ -152,7 +152,7 @@ Before training, the correct config file needs to be placed in the --model_dir f
 To train CooperTrim using a single GPU------
 For Segmentation Task:
 ```bash
-python coopertrim/tools/train_perception.py --hypes_yaml ${CONFIG_FILE} [--model_dir ${CHECKPOINT_FOLDER}]
+python opencood/tools/train_camera.py --hypes_yaml ${CONFIG_FILE} [--model_dir ${CHECKPOINT_FOLDER}]
 ```
 
 Example:

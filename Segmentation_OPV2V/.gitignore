@@ -134,8 +134,6 @@ dmypy.json
 *logs*
 
 run_job_*
-checkpoints_*
-checkpoints/
 output_*
 mmp_latest.sif 
 overlay.img
