@@ -2,9 +2,9 @@
 # Author: Runsheng Xu <rxx3386@ucla.edu>
 # License: TDG-Attribution-NonCommercial-NoDistrib
 
-
 from os.path import dirname, realpath
-from setuptools import setup, find_packages, Distribution
+from setuptools import setup, find_packages, Extension
+from Cython.Build import cythonize
 from opencood.version import __version__
 
 
@@ -14,6 +14,14 @@ def _read_requirements_file():
     with open(req_file_path) as f:
         return [line.strip() for line in f]
 
+
+# Define the extension for the Cython file
+extensions = [
+    Extension(
+        name='opencood.utils.box_overlaps',
+        sources=['opencood/utils/box_overlaps.pyx'],
+    ),
+]
 
 setup(
     name='OpenCOOD',
@@ -27,4 +35,5 @@ setup(
                 'cooperative detection',
     long_description=open("README.md").read(),
     install_requires=_read_requirements_file(),
+    ext_modules=cythonize(extensions),  # Include Cython extensions
 )

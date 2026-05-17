@@ -138,7 +138,7 @@ To quickly visualize a single sample of the data with CooperTrim:
 
 ```bash
 cd CooperTrim
-python coopertrim/visualization/visualize_data.py [--scene ${SCENE_NUMBER} --sample ${SAMPLE_NUMBER}]
+python Segmentation_OPV2V/opv2v/opencood/visualization/visualize_data.py [--scene ${SCENE_NUMBER} --sample ${SAMPLE_NUMBER}]
 ```
 
 - **scene**: The ith scene in the data. Default: 4
@@ -161,6 +161,7 @@ cd CooperTrim/Segmentation_OPV2V/opv2v/
  python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml
 ```
 For Detection tasks:
+cd CooperTrim/3D_Detection_OPV2V
 ```
 python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir  opencood/ckp_test [--half]
 ```
@@ -170,18 +171,19 @@ python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --mode
 To train CooperTrim using multiple GPUs with distributed training:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 --use_env coopertrim/tools/train_perception.py --hypes_yaml coopertrim/checkpoints_orig/config.yaml --model_dir coopertrim/checkpoints_orig
+CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 --use_env opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml --model_dir opencood/checkpoints_test
 ```
 ### Some Useful Configs for Segmentation 
 ```bash
-cd CooperTrim/Segmentation_OPV2V/opv2v/opencood/hypes_yaml/autonet
+cd configs/Segmentation_OPV2V/
 ```
 
--*config_cobevt_EG_dyn.yaml/config_cobevt_EG_st.yaml*: COOPERTRIM main configs for cobevt
--*config_disconet_EG_dyn.yaml/config_disconet_EG_st.yaml*: COOPERTRIM main configs for disconet
--*config_attfuse_EG_dyn.yaml/config_attfuse_EG_st.yaml*: COOPERTRIM main configs for attfuse
+-*config_coopertrim_on_cobevt_dyn.yaml/config_coopertrim_on_cobevt_st.yaml*: COOPERTRIM main configs for cobevt
+-*config_coopertrim_on_disconet_dyn.yaml/config_coopertrim_on_disconet_st.yaml*: COOPERTRIM main configs for disconet
+-*config_coopertrim_on_attfuse_dyn.yaml/config_coopertrim_on_attfuse_st.yaml*: COOPERTRIM main configs for attfuse
 
-By default config_cobevt_EG_dyn.yaml is currently copied to config.yaml under checkpoints_test
+By default config_coopertrim_on_cobevt_dyn.yaml is currently copied to config.yaml under checkpoints_test. 
+For using any config, copy the contents to config.yaml and use it from training/testing.
 
 
 ### Testing
@@ -190,12 +192,14 @@ By default config_cobevt_EG_dyn.yaml is currently copied to config.yaml under ch
 
 To test CooperTrim using a single GPU----------
 For Segmentation Task:
+cd CooperTrim/Segmentation_OPV2V/opv2v/
 ```bash
-python coopertrim/tools/inference_perception.py --model_dir coopertrim/checkpoints_test [--model_type static]
+python opencood/tools/inference_camera.py --model_dir opencood/checkpoints_test [--model_type static]
 ```
 The evaluation results  will be dumped in the model directory. 
 
 For Detection Tasks:
+cd CooperTrim/3D_Detection_OPV2V
 ```
 python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
 ```
