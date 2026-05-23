@@ -7,215 +7,166 @@ Official Pytorch Implementation of the framework **COOPERTRIM** proposed in our 
 [![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://cisl.ucr.edu/CooperTrim)
 [![Model](https://img.shields.io/badge/HuggingFace-Model-orange)](https://huggingface.co/cisl-hf/CooperTrim)
 
-
-
 <div align="center">
   <img src="images/System_architecture.png" width="600"/>
-  <div>&nbsp;</div>
-
-  <div>&nbsp;</div>
 </div>
 
 ## Overview
-We present <strong>COOPERTRIM</strong>, an adaptive feature selection framework in cooperative perception, which enhances representation learning through temporal uncertainty-driven feature selection for bandwidth-efficient, accurate perception in multi-agent systems. It addresses key challenges of relevance, identifying the most impactful features for downstream tasks, and quantity, determining the optimal point to stop sharing based on scene and task complexity. We employed an ϵ-greedy training method that optimizes the bandwidth performance balance by facilitating effective exploration and exploitation during training. 
+
+We present <strong>COOPERTRIM</strong>, an adaptive feature selection framework in cooperative perception, which enhances representation learning through temporal uncertainty-driven feature selection for bandwidth-efficient, accurate perception in multi-agent systems. It addresses key challenges of relevance, identifying the most impactful features for downstream tasks, and quantity, determining the optimal point to stop sharing based on scene and task complexity. We employed an ϵ-greedy training method that optimizes the bandwidth-performance balance by facilitating effective exploration and exploitation during training.
+
+CooperTrim is compatible with multiple intermediate fusion models — CoBEVT, AttFuse, DiscoNet, F-Cooper, SwissCheese, and Where2comm — without modifying their underlying architectures.
 
 <p align="center">
 <img src="images/Adaptive_selection.png" width="600" alt="">
 </p>
 
 <p align="center">
-<img src="Performance_improvement.png" width="600"  alt="">
+<img src="images/Performance_improvement.png" width="600" alt="">
 </p>
 
-COOPERTRIM Adaptively Requests Data based on Scene Complexity. Increased data requests align with higher scene complexity. Dynamic objects trigger higher request volumes (Frames 1200, 200, 1700), as do complex static elements like intersections (Frames 900, 250, 1600). Solid green lines indicate CooperTrim maintains high IoU despite reduced bandwidth compared to baseline CoBEVT (dashed green lines).
+COOPERTRIM adaptively requests data based on scene complexity. Dynamic objects trigger higher request volumes (Frames 1200, 200, 1700), as do complex static elements like intersections (Frames 900, 250, 1600). Solid green lines indicate CooperTrim maintains high IoU despite reduced bandwidth compared to baseline CoBEVT (dashed green lines).
 
-## News:
-- 12/20/2025: First version of CooperTrim released.
-## Features
-- Provide easy data API for multiple popular multi-agent perception dataset:
-  - [x] [OPV2V [ICRA2022]](https://mobility-lab.seas.ucla.edu/opv2v/)
-  - [x] [V2V4Real [CVPR2023 Highlight]](https://arxiv.org/abs/2303.07601)
-- Provide APIs to allow users use different sensor modalities
-  - [x] LiDAR APIs
-  - [x] Camera APIs
-  - [ ] Radar APIs
-- Provide multiple SOTA 3D detection backbone:
-    - [X] [PointPillar](https://arxiv.org/abs/1812.05784)
-    - [X] [Pixor](https://arxiv.org/abs/1902.06326)
-    - [X] [VoxelNet](https://arxiv.org/abs/1711.06396)
-    - [X] [SECOND](https://www.mdpi.com/1424-8220/18/10/3337)
-- Support multiple sparse convolution versions
-  - [X] Spconv 1.2.1
-  - [X] Spconv 2.x
-- Support  SOTA multi-agent perception models:
-    - [x] [Attentive Fusion [ICRA2022]](https://arxiv.org/abs/2109.07644)
-    - [x] [Cooper [ICDCS]](https://arxiv.org/abs/1905.05265)
-    - [x] [F-Cooper [SEC2019]](https://arxiv.org/abs/1909.06459)
-    - [x] [V2VNet [ECCV2022]](https://arxiv.org/abs/2008.07519)
-    - [ ] [CoAlign (fusion only) [ICRA2023]](https://arxiv.org/abs/2211.07214)
-    - [ ] [FPV-RCNN [RAL2022]](https://arxiv.org/pdf/2109.11615.pdf)
-    - [x] [DiscoNet [NeurIPS2021]](https://arxiv.org/abs/2111.00643)
-    - [ ] [V2X-ViT [ECCV2022]](https://github.com/DerrickXuNu/v2x-vit)
-    - [x] [CoBEVT [CoRL2022]](https://arxiv.org/abs/2207.02202)  
-    - [ ] [AdaFusion [WACV2023]](https://arxiv.org/abs/2208.00116)  
-    - [x] [Where2comm [NeurIPS2022]](https://arxiv.org/abs/2209.12836)
-    - [ ] [V2VAM [TIV2023]](https://arxiv.org/abs/2212.08273)
-    - [x] [SwissCheese [TIV2024]](https://ieeexplore.ieee.org/document/10732008) 
 
-- **Provide a convenient log replay toolbox for OPV2V dataset.** Check [here](logreplay/README.md) to see more details.
 
-## OPV2V Data Downloading
-All the data can be downloaded from [UCLA BOX](https://ucla.app.box.com/v/UCLA-MobilityLab-OPV2V). If you have a good internet, you can directly
-download the complete large zip file such as `train.zip`. In case you suffer from downloading large files, we also split each data set into small chunks, which can be found 
-in the directory ending with `_chunks`, such as `train_chunks`. After downloading, please run the following command to each set to merge those chunks together:
-```python
+## Getting Started
+
+### Data Preparation
+
+**OPV2V:** Download from [UCLA BOX](https://ucla.app.box.com/v/UCLA-MobilityLab-OPV2V). For large files, use the chunked downloads and merge:
+```bash
 cat train.zip.part* > train.zip
 unzip train.zip
 ```
+See [our website](https://mobility-lab.seas.ucla.edu/opv2v/) for dataset details.
 
-### Installation
-Please refer to [data introduction](https://opencood.readthedocs.io/en/latest/md_files/data_intro.html)
-and [installation](https://opencood.readthedocs.io/en/latest/md_files/installation.html) guide to prepare
-data and install CooperTrim. To see more details of OPV2V data, please check [our website.](https://mobility-lab.seas.ucla.edu/opv2v/)
-
-## V2V4Real Data Downloading
-Please check V2V4Real's [website](https://research.seas.ucla.edu/mobility-lab/v2v4real/) to download the data (OPV2V format).
-
-After downloading the data, please put the data in the following structure:
-```shell
-├── v2v4real
-│   ├── train
-|      |── testoutput_CAV_data_2022-03-15-09-54-40_1
-│   ├── validate
-│   ├── test
+**V2V4Real:** Download from the [V2V4Real website](https://research.seas.ucla.edu/mobility-lab/v2v4real/) (OPV2V format). Organize as:
+```
+v2v4real/
+├── train/
+│   └── testoutput_CAV_data_2022-03-15-09-54-40_1/
+├── validate/
+└── test/
 ```
 
-## Quick Start
-
-This section provides instructions to quickly set up, visualize, train, and test the **CooperTrim** framework for Cooperative Perception in autonomous driving. Follow the steps below to get started.
-
 ### Installation
-
-Before proceeding with visualization, training, or testing, ensure you have the necessary environment and dependencies set up:
 
 ```bash
-# Clone repo
 git clone https://github.com/UCR-CISL/CooperTrim.git
-
 cd CooperTrim
 ```
-Go to any folder of interest : Segmentation_OPV2V / 3D_Detection_OPV2V / 3D_Detection_V2V4Real. 
-#### For Segmentation_OPV2V:
-```
-# Setup conda environment
+
+Go to the sub-folder for your task: `Segmentation_OPV2V`, `3D_Detection_OPV2V`, or `3D_Detection_V2V4Real`.
+
+```bash
+# Segmentation_OPV2V:
 conda env create -f cobevt_env.yaml
-```
-#### For 3D_Detection_OPV2V:
-```
-# Setup conda environment
+conda activate cobevt_env
+
+# 3D_Detection_OPV2V or 3D_Detection_V2V4Real:
 conda env create -f opencood_env.yaml
-```
-#### For 3D_Detection_V2V4Real:
-```
-# Setup conda environment
-conda env create -f opencood_env.yaml
+conda activate opencood_env
 ```
 
-```
-conda activate {particular}_env
-conda install pytorch==1.11.0 torchvision==0.12.0 cudatoolkit=11.3 -c pytorch
-
-# Install dependencies
+Then compile and install:
+```bash
 python setup.py build_ext --inplace
 python setup.py develop
-
-pip install shapely --only-binary shapely
 ```
 
 ### Visualization
-
-To quickly visualize a single sample of the data with CooperTrim:
 
 ```bash
 cd CooperTrim
 python Segmentation_OPV2V/opv2v/opencood/visualization/visualize_data.py [--scene ${SCENE_NUMBER} --sample ${SAMPLE_NUMBER}]
 ```
 
-- **scene**: The ith scene in the data. Default: 4
-- **sample**: The jth sample in the ith scene. Default: 10
+- `--scene`: scene index (default: 4)
+- `--sample`: sample index within scene (default: 10)
 
 ### Training
-Before training, the correct config file needs to be placed in the --model_dir folder (eg. checkpoints_test). The configs are available in configs_folder. Select the config as per training need, copy and paste it to the folder referenced by --model_dir. Rename the file to "config.yaml". 
 
-#### Training on 1 GPU
+Before training, copy the desired config from `configs/` into your checkpoint folder and rename it `config.yaml`. CooperTrim configs are in `configs/Segmentation_OPV2V/`, `configs/3D_Detection_OPV2V/`, and `configs/3D_Detection_V2V4Real/`.
 
-To train CooperTrim using a single GPU------
-For Segmentation Task:
+**Single GPU:**
 ```bash
-python opencood/tools/train_camera.py --hypes_yaml ${CONFIG_FILE} [--model_dir ${CHECKPOINT_FOLDER}]
-```
-
-Example:
+# Segmentation
 cd CooperTrim/Segmentation_OPV2V/opv2v/
-```bash
- python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml
-```
-For Detection tasks:
+python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml
+
+# Detection
 cd CooperTrim/3D_Detection_OPV2V
+python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir opencood/ckp_test [--half]
 ```
-python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir  opencood/ckp_test [--half]
-```
 
-#### Training on Multiple GPUs
-
-To train CooperTrim using multiple GPUs with distributed training:
-
+**Multiple GPUs:**
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 --use_env opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml --model_dir opencood/checkpoints_test
+# Segmentation
+CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml --model_dir opencood/checkpoints_test
+
+# Detection
+CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir opencood/ckp_test
 ```
-### Some Useful Configs for Segmentation 
-```bash
-cd configs/Segmentation_OPV2V/
-```
-
--*config_coopertrim_on_cobevt_dyn.yaml/config_coopertrim_on_cobevt_st.yaml*: COOPERTRIM main configs for cobevt
--*config_coopertrim_on_disconet_dyn.yaml/config_coopertrim_on_disconet_st.yaml*: COOPERTRIM main configs for disconet
--*config_coopertrim_on_attfuse_dyn.yaml/config_coopertrim_on_attfuse_st.yaml*: COOPERTRIM main configs for attfuse
-
-By default config_coopertrim_on_cobevt_dyn.yaml is currently copied to config.yaml under checkpoints_test. 
-For using any config, copy the contents to config.yaml and use it from training/testing.
-
 
 ### Testing
 
-#### Testing on 1 GPU
-
-To test CooperTrim using a single GPU----------
-For Segmentation Task:
-cd CooperTrim/Segmentation_OPV2V/opv2v/
 ```bash
+# Segmentation
+cd CooperTrim/Segmentation_OPV2V/opv2v/
 python opencood/tools/inference_camera.py --model_dir opencood/checkpoints_test [--model_type static]
-```
-The evaluation results  will be dumped in the model directory. 
 
-For Detection Tasks:
+# Detection
 cd CooperTrim/3D_Detection_OPV2V
-```
 python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
 ```
 
+Evaluation results are saved in the model directory.
 
-## Tutorials
-We have a series of tutorials to help you understand OpenCOOD more. Please check the series of our [tutorials](https://opencood.readthedocs.io/en/latest/md_files/config_tutorial.html).
+## Pretrained Checkpoints
 
+All checkpoints are hosted on [HuggingFace](https://huggingface.co/cisl-hf/CooperTrim). Download and place each `.pth` file in the same folder as the corresponding `config.yaml`.
+
+`_dyn` = dynamic object target; `_st` = static object target.
+
+### Segmentation (OPV2V, BEV semantic segmentation)
+
+| Checkpoint | Base Model | Target | Link |
+|---|---|---|---|
+| `baseline_cobevt_dyn.pth` | CoBEVT | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_cobevt_dyn.pth) |
+| `baseline_cobevt_st.pth` | CoBEVT | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_cobevt_st.pth) |
+| `baseline_attfuse_dyn.pth` | AttFuse | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_attfuse_dyn.pth) |
+| `baseline_attfuse_st.pth` | AttFuse | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_attfuse_st.pth) |
+| `baseline_disconet_dyn.pth` | DiscoNet | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_disconet_dyn.pth) |
+| `baseline_disconet_st.pth` | DiscoNet | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_disconet_st.pth) |
+| `baseline_fcooper_dyn.pth` | F-Cooper | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_fcooper_dyn.pth) |
+| `baseline_fcooper_st.pth` | F-Cooper | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_fcooper_st.pth) |
+| `baseline_swisscheese_dyn.pth` | SwissCheese | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_swisscheese_dyn.pth) |
+| `baseline_swisscheese_st.pth` | SwissCheese | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_swisscheese_st.pth) |
+| `baseline_where2comm_dyn.pth` | Where2comm | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_where2comm_dyn.pth) |
+| `baseline_where2comm_st.pth` | Where2comm | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/baseline_where2comm_st.pth) |
+| `coopertrim_cobevt_dyn.pth` | CoBEVT + **CooperTrim** | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/coopertrim_cobevt_dyn.pth) |
+| `coopertrim_cobevt_st.pth` | CoBEVT + **CooperTrim** | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/coopertrim_cobevt_st.pth) |
+| `coopertrim_attfuse_dyn.pth` | AttFuse + **CooperTrim** | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/coopertrim_attfuse_dyn.pth) |
+| `coopertrim_attfuse_st.pth` | AttFuse + **CooperTrim** | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/coopertrim_attfuse_st.pth) |
+| `coopertrim_disconet_dyn.pth` | DiscoNet + **CooperTrim** | Dynamic | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/coopertrim_disconet_dyn.pth) |
+| `coopertrim_disconet_st.pth` | DiscoNet + **CooperTrim** | Static | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/coopertrim_disconet_st.pth) |
+
+### Detection (3D object detection)
+
+| Checkpoint | Dataset | Method | Link |
+|---|---|---|---|
+| `det_opv2v_baseline_cobevt.pth` | OPV2V | CoBEVT baseline | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/det_opv2v_baseline_cobevt.pth) |
+| `det_opv2v_coopertrim.pth` | OPV2V | **CooperTrim** | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/det_opv2v_coopertrim.pth) |
+| `det_v2v4real_baseline_cobevt.pth` | V2V4Real | CoBEVT baseline | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/det_v2v4real_baseline_cobevt.pth) |
+| `det_v2v4real_coopertrim.pth` | V2V4Real | **CooperTrim** | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/det_v2v4real_coopertrim.pth) |
 
 ## Citation
- If you are using our CooperTrim framework for your research, please cite the following paper:
- ```bibtex
+
+If you use CooperTrim in your research, please cite:
+```bibtex
 @inproceedings{mukhopadhyaycoopertrim,
   title={CooperTrim: Adaptive Data Selection for Uncertainty-Aware Cooperative Perception},
   author={Mukhopadhyay, Shilpa and Roy-Chowdhury, Amit and Qiu, Hang},
   booktitle={The Fourteenth International Conference on Learning Representations}
 }
 ```
-
