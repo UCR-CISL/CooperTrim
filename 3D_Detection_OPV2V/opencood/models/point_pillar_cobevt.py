@@ -207,7 +207,7 @@ class PointPillarCoBEVT(nn.Module):
             # #     print(f"Batch {i}: percentage_selected = {percentage_selected:.2f}%")
 
             epsilon = 0.1  # Exploration probability
-            if (epoch >= 5 and random.random() > epsilon and prev_fused_feature is not None) or validation==True:
+            if prev_fused_feature is not None and ((epoch >= 5 and random.random() > epsilon) or validation):
             # if epoch > 2 and random.random() > epsilon:  # Exploit with probability
             #         # Check if prev_fused_feature is provided
             #         if prev_fused_feature is not None:
@@ -303,7 +303,7 @@ class PointPillarCoBEVT(nn.Module):
             # Step 6: Replace selected indices in replicated data
             selected_output_values_k = selected_output_values[batch_idx][:n, :, :, :].to(target_device)  # Select specific values
             replicated_data = replicated_data.clone().to(target_device)
-            replicated_data[:, selected_indices, :, :] = selected_output_values_k[:, :len(selected_indices), :, :]
+            replicated_data[:, selected_indices, :, :] = selected_output_values_k[:, :len(selected_indices), :, :].to(replicated_data.dtype)
             # replicated_data = replicated_data.squeeze(0)
             # Update integrated tensor
             if integrated_tensor is None:

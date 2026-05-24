@@ -1,9 +1,9 @@
 name: fax # only used for demonstration data api
-root_dir: '/data/HangQiu/data/OPV2V/train'
-validate_dir: '/data/HangQiu/data/OPV2V/validate'
+root_dir: '/path/to/OPV2V/train'
+validate_dir: '/path/to/OPV2V/validate'
 
-# root_dir: '/data/HangQiu/proj/autonet-RL/sub_OPV2V/train'
-# validate_dir: '/data/HangQiu/proj/autonet-RL/sub_OPV2V/validate'
+# root_dir: '/path/to/OPV2V/train'
+# validate_dir: '/path/to/OPV2V/validate'
 
 
 train_params:

@@ -47,15 +47,14 @@ def main():
 
     ## Added for IOU
     opts = argparse.Namespace(
-        model_dir     = r"/data/HangQiu/proj/AutoNetSelection/det_cobevt_pretrained_autonet_2",
-        fusion_method = 'intermediate',
-        global_sort_detections = False
+        model_dir=opt.model_dir,
+        fusion_method='intermediate',
+        global_sort_detections=False
     )
-    hype = yaml_utils.load_yaml(None, opts)
-    opencood_dataset = build_dataset(hype, visualize=True, train=False)
+    opencood_dataset = build_dataset(hypes, visualize=True, train=False)
     data_loader = DataLoader(opencood_dataset,
                              batch_size=1,
-                             num_workers=16,
+                             num_workers=4,
                              collate_fn=opencood_dataset.collate_batch_test,
                              shuffle=False,
                              pin_memory=False,

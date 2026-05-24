@@ -158,14 +158,14 @@ preprocess:
     voxel_size: *id002
   cav_lidar_range: *id001
   core_method: SpVoxelPreprocessor
-root_dir: /data/HangQiu/proj/autonet-RL/sub_OPV2V/train
+root_dir: /path/to/OPV2V/train
 train_params:
   batch_size: 1 #2 #CooperTrim
   epoches: 100 #90 #CooperTrim
   eval_freq: 1 #2 #CooperTrim
   max_cav: 5
   save_freq: 1
-validate_dir: /data/HangQiu/proj/autonet-RL/sub_OPV2V/validate_sub #/home/cav/data/opv2v/test_culver_city
+validate_dir: /path/to/OPV2V/validate
 wild_setting:
   async: false
   async_overhead: 100

@@ -1,6 +1,6 @@
 # COOPERTRIM: Adaptive Data Selection For Uncertainty-Aware Cooperative Perception 
 
-Official Pytorch Implementation of the framework **COOPERTRIM** proposed in our paper [**COOPERTRIM: Adaptive Data Selection For Uncertainty-Aware Cooperative Perception**](https://openreview.net/pdf?id=8NgKNuHRiH) accepted by **ICLR2026**.
+Official Pytorch Implementation of [**COOPERTRIM: Adaptive Data Selection For Uncertainty-Aware Cooperative Perception**](https://openreview.net/pdf?id=8NgKNuHRiH), **ICLR2026**.
 
 [![paper](https://img.shields.io/badge/OpenReview-Paper-blue.svg)](https://openreview.net/pdf?id=8NgKNuHRiH)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
@@ -64,7 +64,7 @@ conda env create -f cobevt_env.yaml
 conda activate cobevt_env
 
 # 3D_Detection_OPV2V or 3D_Detection_V2V4Real:
-conda env create -f opencood_env.yaml
+conda env create -f opencood_env.yml
 conda activate opencood_env
 ```
 
@@ -86,45 +86,71 @@ python Segmentation_OPV2V/opv2v/opencood/visualization/visualize_data.py [--scen
 
 ### Training
 
-Before training, copy the desired config from `configs/` into your checkpoint folder and rename it `config.yaml`. CooperTrim configs are in `configs/Segmentation_OPV2V/`, `configs/3D_Detection_OPV2V/`, and `configs/3D_Detection_V2V4Real/`.
+**Step 1 — Create a checkpoint directory and copy a config:**
 
-**Single GPU:**
+```bash
+# Detection (OPV2V example)
+cd CooperTrim/3D_Detection_OPV2V
+mkdir -p opencood/ckpt
+cp ../../configs/3D_Detection_OPV2V/config_det_coopertrim_on_cobevt.yaml opencood/ckpt/config.yaml
+
+# Segmentation (OPV2V example)
+cd CooperTrim/Segmentation_OPV2V/opv2v
+mkdir -p opencood/ckpt
+cp ../../../configs/Segmentation_OPV2V/config_coopertrim_on_cobevt_dyn.yaml opencood/ckpt/config.yaml
+```
+
+**Step 2 — Update dataset paths in `opencood/ckpt/config.yaml`:**
+
+Open the file and set these two fields to your local dataset:
+```yaml
+root_dir: /your/path/to/OPV2V/train        # training split
+validate_dir: /your/path/to/OPV2V/validate  # validation split
+```
+
+**Step 3 — Run training:**
+
+Single GPU:
 ```bash
 # Segmentation
 cd CooperTrim/Segmentation_OPV2V/opv2v/
-python opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml
+python opencood/tools/train_camera.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt
 
 # Detection
 cd CooperTrim/3D_Detection_OPV2V
-python opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir opencood/ckp_test [--half]
+python opencood/tools/train.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt [--half]
 ```
 
-**Multiple GPUs:**
+Multiple GPUs:
 ```bash
 # Segmentation
-CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train_camera.py --hypes_yaml opencood/checkpoints_test/config.yaml --model_dir opencood/checkpoints_test
+CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train_camera.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt
 
 # Detection
-CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train.py --hypes_yaml opencood/ckp_test/config.yaml --model_dir opencood/ckp_test
+CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt
 ```
 
 ### Testing
 
+Checkpoints saved during training (or downloaded from HuggingFace — see below) are loaded from `--model_dir`. Pass the same directory you used for training, or create a new one for a pretrained checkpoint.
+
 ```bash
 # Segmentation
 cd CooperTrim/Segmentation_OPV2V/opv2v/
-python opencood/tools/inference_camera.py --model_dir opencood/checkpoints_test [--model_type static]
+python opencood/tools/inference_camera.py --model_dir opencood/ckpt [--model_type static]
 
 # Detection
 cd CooperTrim/3D_Detection_OPV2V
-python opencood/tools/inference.py --model_dir opencood/checkpoints_test --fusion_method intermediate
+python opencood/tools/inference.py --model_dir opencood/ckpt --fusion_method intermediate
 ```
 
-Evaluation results are saved in the model directory.
+Evaluation results are saved as `eval.yaml` in the model directory.
 
 ## Pretrained Checkpoints
 
-All checkpoints are hosted on [HuggingFace](https://huggingface.co/cisl-hf/CooperTrim). Download and place each `.pth` file in the same folder as the corresponding `config.yaml`.
+All checkpoints are hosted on [HuggingFace](https://huggingface.co/cisl-hf/CooperTrim). Download each `.pth` file, rename it to `latest.pth`, and place it in the same folder as the corresponding `config.yaml`.
+
+> **Checkpoint naming:** The model loader looks for files named `net_epochN.pth` or `latest.pth`. Downloaded HuggingFace checkpoints must be renamed accordingly before inference will find them.
 
 `_dyn` = dynamic object target; `_st` = static object target.
 
@@ -159,6 +185,12 @@ All checkpoints are hosted on [HuggingFace](https://huggingface.co/cisl-hf/Coope
 | `det_opv2v_coopertrim.pth` | OPV2V | **CooperTrim** | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/det_opv2v_coopertrim.pth) |
 | `det_v2v4real_baseline_cobevt.pth` | V2V4Real | CoBEVT baseline | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/det_v2v4real_baseline_cobevt.pth) |
 | `det_v2v4real_coopertrim.pth` | V2V4Real | **CooperTrim** | [download](https://huggingface.co/cisl-hf/CooperTrim/resolve/main/det_v2v4real_coopertrim.pth) |
+
+
+## Acknowledgement
+We sincerely thank the developers and contributors of the many open-source projects that our code is built upon: [OPV2V](https://github.com/DerrickXuNu/OpenCOOD), [V2V4REAL](https://github.com/ucla-mobility/v2v4real), [CoBEVT](https://github.com/DerrickXuNu/CoBEVT).
+
+
 
 ## Citation
 
