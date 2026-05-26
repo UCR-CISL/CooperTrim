@@ -35,9 +35,23 @@ COOPERTRIM adaptively requests data based on scene complexity. Dynamic objects t
 
 **OPV2V:** Download from [UCLA BOX](https://ucla.app.box.com/v/UCLA-MobilityLab-OPV2V). For large files, use the chunked downloads and merge:
 ```bash
-cat train.zip.part* > train.zip
-unzip train.zip
+mkdir -p train && unzip 'train_*.zip' -d train
 ```
+Organize the downloaded splits so the final layout is:
+```
+OPV2V/
+├── train/      # training scenes (each scene folder directly inside)
+├── validate/   # validation scenes
+└── test/       # test scenes
+```
+
+> **Segmentation only:** The segmentation pipeline requires BEV semantic label files (`bev_dynamic.png`, `bev_static.png`, `bev_lane.png`, etc.) that are **not** included in the standard OPV2V download. Download the additional label archive (`additional.zip`) from the same UCLA BOX folder, unzip it, and merge each split into the corresponding directory:
+> ```bash
+> rsync -a additional/train/    OPV2V/train/
+> rsync -a additional/validate/ OPV2V/validate/
+> rsync -a additional/test/     OPV2V/test/
+> ```
+
 See [our website](https://mobility-lab.seas.ucla.edu/opv2v/) for dataset details.
 
 **V2V4Real:** Download from the [V2V4Real website](https://research.seas.ucla.edu/mobility-lab/v2v4real/) (OPV2V format). Organize as:
@@ -97,7 +111,7 @@ cp ../../configs/3D_Detection_OPV2V/config_det_coopertrim_on_cobevt.yaml opencoo
 # Segmentation (OPV2V example)
 cd CooperTrim/Segmentation_OPV2V/opv2v
 mkdir -p opencood/ckpt
-cp ../../../configs/Segmentation_OPV2V/config_coopertrim_on_cobevt_dyn.yaml opencood/ckpt/config.yaml
+cp ../../configs/Segmentation_OPV2V/config_coopertrim_on_cobevt_dyn.yaml opencood/ckpt/config.yaml
 ```
 
 **Step 2 — Update dataset paths in `opencood/ckpt/config.yaml`:**

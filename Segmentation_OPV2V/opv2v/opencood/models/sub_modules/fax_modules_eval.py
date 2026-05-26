@@ -674,36 +674,6 @@ class FAXModule(nn.Module):
                 percentage_selected = (selected_indices / total_indices) * 100
                 # print(f"percentage_selected: {(percentage_selected):.2f}%")
 
-                # # #shilp adump channel select
-                # # File path
-                file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/coopertrim_cobevt_st_compress8_channel.txt'
-
-                # Check if the file exists to determine the starting frame
-                if os.path.exists(file_path):
-                    # Read the last line to get the last frame number
-                    with open(file_path, 'r') as file:
-                        lines = file.readlines()
-                        if lines:
-                            last_line = lines[-1]
-                            last_frame = int(last_line.split(',')[0].strip('()'))  # Extract the frame number
-                            current_frame = last_frame + 1
-                        else:
-                            current_frame = 1  # If file is empty, start with frame 1
-                else:
-                    current_frame = 1  # If file doesn't exist, start with frame 1
-
-                # # Calculate the percentage of selected indices
-                # total_indices = random_indices.numel()
-                # selected_indices = random_indices.sum().item()  # Count of selected indices
-                # percentage_selected = (selected_indices / total_indices) * 100
-
-                # Prepare the line to be written to the file
-                line_to_write = f"({current_frame},{percentage_selected})\n"
-
-                # Write to the file
-                with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
-                    file.write(line_to_write)
-                #    print(f"Frame {current_frame}: {percentage_selected:.2f}% of indices selected")          
         else:
                 percentage_data_to_request = 1.0
                 num_random_indices = int(percentage_data_to_request * num_spatial_indices)  # Compute 30% of total indices
@@ -714,30 +684,6 @@ class FAXModule(nn.Module):
                 percentage_selected = 100.0
                 # print(f"percentage_selected: {(percentage_selected):.2f}%")
 
-                #CooperTrim dump channel select
-                # File path
-                file_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/coopertrim_cobevt_st_compress8_channel.txt'
-
-                # Check if the file exists to determine the starting frame
-                if os.path.exists(file_path):
-                    # Read the last line to get the last frame number
-                    with open(file_path, 'r') as file:
-                        lines = file.readlines()
-                        if lines:
-                            last_line = lines[-1]
-                            last_frame = int(last_line.split(',')[0].strip('()'))  # Extract the frame number
-                            current_frame = last_frame + 1
-                        else:
-                            current_frame = 1  # If file is empty, start with frame 1
-                else:
-                    current_frame = 1  # If file doesn't exist, start with frame 1
-
-                # Prepare the line to be written to the file
-                line_to_write = f"({current_frame},100)\n"
-
-                # Write to the file
-                with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
-                    file.write(line_to_write)
                             
 
         # percentage_data_to_request = 0.05

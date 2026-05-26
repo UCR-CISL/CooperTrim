@@ -2,10 +2,10 @@
 # import numpy as np
 
 # # File paths for the two datasets
-# # file_path_1 = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_attfuse_CA_dyn.txt'
-# file_path_1 = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_cobevt_dyn.txt'
-# # file_path_3 = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_fcooper_CA_dyn.txt'
-# # file_path_4 = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_disconet_CA_dyn.txt'
+# # file_path_1 = '/path/to/your/data_file.txt'
+# file_path_1 = '/path/to/your/data_file.txt'
+# # file_path_3 = '/path/to/your/data_file.txt'
+# # file_path_4 = '/path/to/your/data_file.txt'
 
 
 # # Function to read and process data from a file
@@ -53,7 +53,7 @@
 # plt.grid(True)
 
 # # Save the plot as an image
-# output_image_path = '/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/frame_request_percentage_dyn.png'
+# output_image_path = '/path/to/your/output.png'
 # plt.savefig(output_image_path, dpi=300, bbox_inches='tight')  # Save with high resolution
 
 # # Show the plot
@@ -86,11 +86,11 @@ def read_file_static(filename):
 
 
 # Read data from the files
-# # file1_static = read_file('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_cobevt_st_base.txt')  # Replace with the actual path to static network usage
-file2_static = read_file_static('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/fcooper_st_iou_base.txt')  # Replace with the actual path to static IOU data
+# # file1_static = read_file('/path/to/your/data_file.txt')  # Replace with the actual path to static network usage
+file2_static = read_file_static('/path/to/your/data_file.txt')  # Replace with the actual path to static IOU data
 
-file1_l6 = read_file('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_fcooper_st_lagrange.txt')  # Replace with the actual path to dynamic network usage
-file2_l6 = read_file_static('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/fcooper_st_iou_lagrange.txt')  # Replace with the actual path to dynamic IOU data
+file1_l6 = read_file('/path/to/your/data_file.txt')  # Replace with the actual path to dynamic network usage
+file2_l6 = read_file_static('/path/to/your/data_file.txt')  # Replace with the actual path to dynamic IOU data
 
 # Adjust frames in File 2 by adding 1
 adjusted_static_data = [(frame + 1, riou, liou) for frame, riou, liou in file2_static]  # Static data adjustment
@@ -130,7 +130,7 @@ lane_iou_static = gaussian_smoothing(lane_iou_static, sigma=sigma)
 # ax.set_ylabel('Lane IOU')  # Y-axis label
 # ax.set_zlabel('Network Usage')  # Z-axis label
 # ax.legend()  # Add legend
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/3d_plot_lane_ious_combined_L5.png', dpi=300)  # Save as a high-resolution image
+# plt.savefig('/path/to/your/output.png', dpi=300)  # Save as a high-resolution image
 # plt.close()  # Close the plot to avoid displaying it
 
 # # Plot Road IOUs (Static and Dynamic)
@@ -142,7 +142,7 @@ lane_iou_static = gaussian_smoothing(lane_iou_static, sigma=sigma)
 # ax.set_ylabel('Road IOU')  # Y-axis label
 # ax.set_zlabel('Network Usage')  # Z-axis label
 # ax.legend()  # Add legend
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/3d_plot_road_ious_combined_L5.png', dpi=300)  # Save as a high-resolution image
+# plt.savefig('/path/to/your/output.png', dpi=300)  # Save as a high-resolution image
 # plt.close()  # Close the plot to avoid displaying it
 
 
@@ -155,7 +155,7 @@ lane_iou_static = gaussian_smoothing(lane_iou_static, sigma=sigma)
 # plt.title('Road IOU vs Frame', fontsize=14)
 # plt.legend()
 # plt.grid(True)
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/2d_plot_road_ious_cobevt.png', dpi=300, bbox_inches='tight')  # Save the plot
+# plt.savefig('/path/to/your/output.png', dpi=300, bbox_inches='tight')  # Save the plot
 # plt.close()  # Close the plot to avoid displaying it
 
 # # Plot 2D Lane IOU vs Frames
@@ -167,7 +167,7 @@ lane_iou_static = gaussian_smoothing(lane_iou_static, sigma=sigma)
 # plt.title('Lane IOU vs Frame', fontsize=14)
 # plt.legend()
 # plt.grid(True)
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/2d_plot_lane_ious_cobevt.png', dpi=300, bbox_inches='tight')  # Save the plot
+# plt.savefig('/path/to/your/output.png', dpi=300, bbox_inches='tight')  # Save the plot
 # plt.close()  # Close the plot to avoid displaying it
 
 # Calculate the difference between network usage data
@@ -183,7 +183,7 @@ plt.ylabel('Values', fontsize=12)
 plt.title('Road IOU and Network Usage vs Frame', fontsize=14)
 plt.legend()
 plt.grid(True)
-plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/2d_plot_road_ious_fcooper_st.png', dpi=300, bbox_inches='tight')  # Save the plot
+plt.savefig('/path/to/your/output.png', dpi=300, bbox_inches='tight')  # Save the plot
 plt.close()  # Close the plot to avoid displaying it
 
 # Plot 2D Lane IOU vs Frames
@@ -196,16 +196,16 @@ plt.ylabel('Values', fontsize=12)
 plt.title('Lane IOU and Network Usage vs Frame', fontsize=14)
 plt.legend()
 plt.grid(True)
-plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/2d_plot_lane_ious_fcooper_st.png', dpi=300, bbox_inches='tight')  # Save the plot
+plt.savefig('/path/to/your/output.png', dpi=300, bbox_inches='tight')  # Save the plot
 plt.close()  # Close the plot to avoid displaying it
 
 ###############DYNAMIC PLOTTING#####################
 
 # # # Read data from the files
 
-file2_dynamic = read_file('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/fcooper_dyn_iou_base.txt')  # Replace with the actual path to static IOU data
-file1_l6 = read_file('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/channel_usage_fcooper_dyn_lagrange.txt')  # Replace with the actual path to dynamic network usage
-file2_l6 = read_file('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/fcooper_dyn_iou_lagrange.txt')  # Replace with the actual path to dynamic IOU data
+file2_dynamic = read_file('/path/to/your/data_file.txt')  # Replace with the actual path to static IOU data
+file1_l6 = read_file('/path/to/your/data_file.txt')  # Replace with the actual path to dynamic network usage
+file2_l6 = read_file('/path/to/your/data_file.txt')  # Replace with the actual path to dynamic IOU data
 
 # Adjust frames in File 2 by adding 1
 adjusted_dynamic_data = [(frame + 1, riou) for frame, riou in file2_dynamic]  # Static data adjustment
@@ -243,7 +243,7 @@ iou_dynamic = gaussian_smoothing(iou_dynamic, sigma=sigma)  # Smoothen Road IOU 
 # ax.set_ylabel('Lane IOU')  # Y-axis label
 # ax.set_zlabel('Network Usage')  # Z-axis label
 # ax.legend()  # Add legend
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/3d_plot_lane_ious_combined_L5.png', dpi=300)  # Save as a high-resolution image
+# plt.savefig('/path/to/your/output.png', dpi=300)  # Save as a high-resolution image
 # plt.close()  # Close the plot to avoid displaying it
 
 # # Plot Road IOUs (Static and Dynamic)
@@ -255,7 +255,7 @@ iou_dynamic = gaussian_smoothing(iou_dynamic, sigma=sigma)  # Smoothen Road IOU 
 # ax.set_ylabel('Road IOU')  # Y-axis label
 # ax.set_zlabel('Network Usage')  # Z-axis label
 # ax.legend()  # Add legend
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/3d_plot_road_ious_combined_L5.png', dpi=300)  # Save as a high-resolution image
+# plt.savefig('/path/to/your/output.png', dpi=300)  # Save as a high-resolution image
 # plt.close()  # Close the plot to avoid displaying it
 
 
@@ -268,7 +268,7 @@ iou_dynamic = gaussian_smoothing(iou_dynamic, sigma=sigma)  # Smoothen Road IOU 
 # plt.title('Road IOU vs Frame', fontsize=14)
 # plt.legend()
 # plt.grid(True)
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/2d_plot_road_ious_cobevt.png', dpi=300, bbox_inches='tight')  # Save the plot
+# plt.savefig('/path/to/your/output.png', dpi=300, bbox_inches='tight')  # Save the plot
 # plt.close()  # Close the plot to avoid displaying it
 
 # # Plot 2D Lane IOU vs Frames
@@ -280,7 +280,7 @@ iou_dynamic = gaussian_smoothing(iou_dynamic, sigma=sigma)  # Smoothen Road IOU 
 # plt.title('Lane IOU vs Frame', fontsize=14)
 # plt.legend()
 # plt.grid(True)
-# plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/2d_plot_lane_ious_cobevt.png', dpi=300, bbox_inches='tight')  # Save the plot
+# plt.savefig('/path/to/your/output.png', dpi=300, bbox_inches='tight')  # Save the plot
 # plt.close()  # Close the plot to avoid displaying it
 
 # Calculate the difference between network usage data
@@ -296,7 +296,7 @@ plt.ylabel('Values', fontsize=12)
 plt.title('Dynamic IOU and Network Usage vs Frame', fontsize=14)
 plt.legend()
 plt.grid(True)
-plt.savefig('/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/eval_results/2d_plot_fcooper_dyn.png', dpi=300, bbox_inches='tight')  # Save the plot
+plt.savefig('/path/to/your/output.png', dpi=300, bbox_inches='tight')  # Save the plot
 plt.close()  # Close the plot to avoid displaying it
 
 print("Plots generated successfully.")

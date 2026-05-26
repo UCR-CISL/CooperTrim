@@ -60,7 +60,6 @@ nest-asyncio==1.6.0
 ninja==1.11.1.4
 numpy @ file:///work/mkl/numpy_and_numpy_base_1682953417311/work
 open3d==0.19.0
--e git+ssh://git@github.com/shilpa2301/CoBEVT_AutoNet.git@01b19f321200527456ce51b3c64f91a4749fa5e7#egg=OpenCOOD&subdirectory=opv2v
 opencv-python==4.11.0.86
 packaging==24.2
 pandas==2.0.3
