@@ -76,6 +76,7 @@ model:
     max_cav: *max_cav
     compression: 0 # compression rate
     backbone_fix: false
+    use_coopertrim: false  # baseline: always request 100% of features
 
     pillar_vfe:
       use_norm: true

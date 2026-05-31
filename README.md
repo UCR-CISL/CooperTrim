@@ -88,6 +88,11 @@ python setup.py build_ext --inplace
 python setup.py develop
 ```
 
+> **Detection only:** Also build the bounding-box overlap extension:
+> ```bash
+> python opencood/utils/setup.py build_ext --inplace
+> ```
+
 ### Visualization
 
 ```bash
@@ -103,12 +108,17 @@ python Segmentation_OPV2V/opv2v/opencood/visualization/visualize_data.py [--scen
 **Step 1 — Create a checkpoint directory and copy a config:**
 
 ```bash
-# Detection (OPV2V example)
+# Detection (OPV2V)
 cd CooperTrim/3D_Detection_OPV2V
 mkdir -p opencood/ckpt
 cp ../../configs/3D_Detection_OPV2V/config_det_coopertrim_on_cobevt.yaml opencood/ckpt/config.yaml
 
-# Segmentation (OPV2V example)
+# Detection (V2V4Real)
+cd CooperTrim/3D_Detection_V2V4Real
+mkdir -p opencood/ckpt
+cp ../../configs/3D_Detection_V2V4Real/config_det_coopertrim_on_cobevt.yaml opencood/ckpt/config.yaml
+
+# Segmentation (OPV2V)
 cd CooperTrim/Segmentation_OPV2V/opv2v
 mkdir -p opencood/ckpt
 cp ../../configs/Segmentation_OPV2V/config_coopertrim_on_cobevt_dyn.yaml opencood/ckpt/config.yaml
@@ -118,8 +128,8 @@ cp ../../configs/Segmentation_OPV2V/config_coopertrim_on_cobevt_dyn.yaml opencoo
 
 Open the file and set these two fields to your local dataset:
 ```yaml
-root_dir: /your/path/to/OPV2V/train        # training split
-validate_dir: /your/path/to/OPV2V/validate  # validation split
+root_dir: /your/path/to/dataset/train        # training split
+validate_dir: /your/path/to/dataset/validate  # validation split
 ```
 
 **Step 3 — Run training:**
@@ -130,8 +140,8 @@ Single GPU:
 cd CooperTrim/Segmentation_OPV2V/opv2v/
 python opencood/tools/train_camera.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt
 
-# Detection
-cd CooperTrim/3D_Detection_OPV2V
+# Detection (OPV2V or V2V4Real — same command, run from the respective subfolder)
+cd CooperTrim/3D_Detection_OPV2V          # or 3D_Detection_V2V4Real
 python opencood/tools/train.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt [--half]
 ```
 
@@ -140,7 +150,7 @@ Multiple GPUs:
 # Segmentation
 CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train_camera.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt
 
-# Detection
+# Detection (OPV2V or V2V4Real)
 CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc_per_node=4 opencood/tools/train.py --hypes_yaml opencood/ckpt/config.yaml --model_dir opencood/ckpt
 ```
 
@@ -153,18 +163,20 @@ Checkpoints saved during training (or downloaded from HuggingFace — see below)
 cd CooperTrim/Segmentation_OPV2V/opv2v/
 python opencood/tools/inference_camera.py --model_dir opencood/ckpt [--model_type static]
 
-# Detection
-cd CooperTrim/3D_Detection_OPV2V
+# Detection (OPV2V or V2V4Real — same command, run from the respective subfolder)
+cd CooperTrim/3D_Detection_OPV2V          # or 3D_Detection_V2V4Real
 python opencood/tools/inference.py --model_dir opencood/ckpt --fusion_method intermediate
 ```
+
+> **V2V4Real note:** Set `validate_dir` in `config.yaml` to the **test** split path before running inference, e.g. `/your/path/to/V2V4Real/test`.
 
 Evaluation results are saved as `eval.yaml` in the model directory.
 
 ## Pretrained Checkpoints
 
-All checkpoints are hosted on [HuggingFace](https://huggingface.co/cisl-hf/CooperTrim). Download each `.pth` file, rename it to `latest.pth`, and place it in the same folder as the corresponding `config.yaml`.
+All checkpoints are hosted on [HuggingFace](https://huggingface.co/cisl-hf/CooperTrim). Download each `.pth` file, rename it to `net_epoch1.pth`, and place it in the same folder as the corresponding `config.yaml`.
 
-> **Checkpoint naming:** The model loader looks for files named `net_epochN.pth` or `latest.pth`. Downloaded HuggingFace checkpoints must be renamed accordingly before inference will find them.
+> **Checkpoint naming:** The model loader scans `--model_dir` for files matching `net_epoch*.pth` and picks the highest epoch number. Downloaded HuggingFace checkpoints **must** be renamed to `net_epoch1.pth` (or any `net_epochN.pth`) — files named `latest.pth` or similar will be silently ignored and inference will produce all-zero AP.
 
 `_dyn` = dynamic object target; `_st` = static object target.
 
