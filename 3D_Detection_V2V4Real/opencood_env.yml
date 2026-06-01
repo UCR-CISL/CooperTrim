@@ -80,7 +80,7 @@ dependencies:
       - configargparse==1.7
       - contourpy==1.1.1
       - cumm==0.5.3
-      - cumm-cu118==0.4.11
+      - cumm-cu113==0.4.11
       - cycler==0.12.1
       - cython==3.1.0
       - dash==3.0.4
@@ -145,7 +145,7 @@ dependencies:
       - scipy==1.10.1
       - shapely==2.0.0
       - six==1.17.0
-      - spconv-cu118==2.3.6
+      - spconv-cu113==2.3.6
       - stack-data==0.6.3
       - tensorboardx==2.6.2.2
       - termcolor==2.4.0
@@ -158,4 +158,3 @@ dependencies:
       - werkzeug==3.0.6
       - widgetsnbextension==4.0.14
       - zipp==3.20.2
-prefix: /home/csgrad/smukh039/miniforge3/envs/opencood_env

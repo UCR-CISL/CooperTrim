@@ -1,6 +1,6 @@
 name: corpbevtlidar
-root_dir: '/data/HangQiu/proj/autonet-RL/sub_V2V4Real/train'
-validate_dir: '/data/HangQiu/proj/autonet-RL/sub_V2V4Real/test'
+root_dir: '/path/to/V2V4Real/train'
+validate_dir: '/path/to/V2V4Real/test'
 
 wild_setting:
   async: false
@@ -76,6 +76,7 @@ model:
     max_cav: *max_cav
     compression: 0 # compression rate
     backbone_fix: false
+    use_coopertrim: false  # baseline: always request 100% of features
 
     pillar_vfe:
       use_norm: true

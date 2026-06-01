@@ -145,3 +145,11 @@ opv2v/v2vnet_eval_scripts/
 opencood/tools/merge_eval_images_to_video.py
 eval_merged_images/
 all_eval_method/
+
+# User working configs — copy from configs/ and modify locally; never commit
+opv2v/opencood/hypes_yaml/opcamera/*.yaml
+opv2v/opencood/hypes_yaml/autonet/*.yaml
+
+# User working checkpoint directories (created by train/inference)
+opv2v/opencood/ckpt*/
+opv2v/opencood/checkpoints*/

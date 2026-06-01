@@ -77,8 +77,8 @@ def main():
     lane_ave_iou = []
 
     # Open the file for writing dynamic IOU values
-    # with open("/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/cobevt_st_iou_cp50.txt", "w") as f:
-    with open("/home/csgrad/smukh039/AutoNetworkingRL/CoBEVT_AutoNet/opv2v/dumps_channel_select/final_cobevt_dyn_channel_select.txt", "w") as f:
+    # with open("/path/to/your/output.txt", "w") as f:
+    with open("channel_select_output.txt", "w") as f:
         for i, batch_data in enumerate(data_loader):
             print(i)
             if i >-1:

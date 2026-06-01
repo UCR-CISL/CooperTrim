@@ -12,3 +12,11 @@ opencood/utils/box_overlaps.cpython-37m-x86_64-linux-gnu.so
 opencood/utils/box_overlaps.c
 opencood/logs/
 
+
+# User working configs — copy from configs/ and modify locally; never commit
+opencood/hypes_yaml/*.yaml
+opencood/hypes_yaml/domain_adaptions/*.yaml
+
+# User working checkpoint directories
+opencood/ckp*/
+opencood/checkpoints*/

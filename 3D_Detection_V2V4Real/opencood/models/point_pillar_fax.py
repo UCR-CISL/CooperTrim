@@ -50,6 +50,7 @@ class PointPillarFax(nn.Module):
             self.backbone_fix()
 
         #CooperTrim autonet
+        self.use_coopertrim = args.get('use_coopertrim', True)
         #CooperTrim channel select adapt
         num_channel_select = 256
         num_spatial_select_h = 48 #48 #config['channel_select']['spatial_dim']
@@ -207,7 +208,7 @@ class PointPillarFax(nn.Module):
             # #     print(f"Batch {i}: percentage_selected = {percentage_selected:.2f}%")
 
             epsilon = 0.1  # Exploration probability
-            if (epoch >= 5 and random.random() > epsilon and prev_fused_feature is not None) or validation==True:
+            if self.use_coopertrim and prev_fused_feature is not None and (epoch >= 5 and random.random() > epsilon or validation):
             # if epoch > 2 and random.random() > epsilon:  # Exploit with probability
             #         # Check if prev_fused_feature is provided
             #         if prev_fused_feature is not None:

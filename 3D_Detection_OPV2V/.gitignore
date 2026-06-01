@@ -143,3 +143,7 @@ opencood/ckp_*/
 opencood/checkpoints_*/
 opencood/pretrained.zip
 output_*.txt
+
+# User working configs — copy from configs/ and modify locally; never commit
+opencood/hypes_yaml/*.yaml
+*.tfevents.*

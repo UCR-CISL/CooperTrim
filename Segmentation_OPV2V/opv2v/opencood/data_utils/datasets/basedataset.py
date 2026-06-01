@@ -129,9 +129,14 @@ class BaseDataset(Dataset):
         self.scenario_database = OrderedDict()
         self.len_record = []
 
+        # valid_scene_idx is a separate counter so scenario_database keys are
+        # always consecutive (0, 1, 2, ...) even when we skip a scenario.
+        # retrieve_by_idx() maps len_record[k] → scenario_database[k], so
+        # the two sequences must stay in sync.
+        valid_scene_idx = 0
+
         # loop over all scenarios
         for (i, scenario_folder) in enumerate(self.scenario_folders):
-            self.scenario_database.update({i: OrderedDict()})
 
             # at least 1 cav should show up
             if self.train and not self.validate:
@@ -151,12 +156,26 @@ class BaseDataset(Dataset):
             if int(cav_list[0]) < 0:
                 cav_list = cav_list[1:] + [cav_list[0]]
 
+            # skip scenes where the ego agent doesn't have all 4 cameras
+            # (some OPV2V recordings were captured with only 3 cameras)
+            first_cav_path = os.path.join(scenario_folder, cav_list[0])
+            first_yamls = sorted([x for x in os.listdir(first_cav_path)
+                                   if x.endswith('.yaml')
+                                   and 'additional' not in x])
+            if first_yamls:
+                probe = load_yaml(os.path.join(first_cav_path, first_yamls[0]))
+                if 'camera3' not in probe:
+                    print(f'Skipping {scenario_folder}: agents have <4 cameras')
+                    continue
+
+            self.scenario_database[valid_scene_idx] = OrderedDict()
+
             # loop over all CAV data
             for (j, cav_id) in enumerate(cav_list):
                 if j > self.max_cav - 1:
                     print('too many cavs')
                     break
-                self.scenario_database[i][cav_id] = OrderedDict()
+                self.scenario_database[valid_scene_idx][cav_id] = OrderedDict()
 
                 # save all yaml files to the dictionary
                 cav_path = os.path.join(scenario_folder, cav_id)
@@ -170,7 +189,7 @@ class BaseDataset(Dataset):
                 timestamps = self.extract_timestamps(yaml_files)
 
                 for timestamp in timestamps:
-                    self.scenario_database[i][cav_id][timestamp] = \
+                    self.scenario_database[valid_scene_idx][cav_id][timestamp] = \
                         OrderedDict()
 
                     yaml_file = os.path.join(cav_path,
@@ -179,11 +198,11 @@ class BaseDataset(Dataset):
                                               timestamp + '.pcd')
                     camera_files = self.load_camera_files(cav_path, timestamp)
 
-                    self.scenario_database[i][cav_id][timestamp]['yaml'] = \
+                    self.scenario_database[valid_scene_idx][cav_id][timestamp]['yaml'] = \
                         yaml_file
-                    self.scenario_database[i][cav_id][timestamp]['lidar'] = \
+                    self.scenario_database[valid_scene_idx][cav_id][timestamp]['lidar'] = \
                         lidar_file
-                    self.scenario_database[i][cav_id][timestamp]['cameras'] = \
+                    self.scenario_database[valid_scene_idx][cav_id][timestamp]['cameras'] = \
                         camera_files
                     # load extra data
                     for file_extension in self.add_data_extension:
@@ -191,21 +210,23 @@ class BaseDataset(Dataset):
                             os.path.join(cav_path,
                                          timestamp + '_' + file_extension)
 
-                        self.scenario_database[i][cav_id][timestamp][
+                        self.scenario_database[valid_scene_idx][cav_id][timestamp][
                             file_extension] = file_name
 
                 # Assume all cavs will have the same timestamps length. Thus
                 # we only need to calculate for the first vehicle in the
                 # scene.
                 if j == 0:
-                    self.scenario_database[i][cav_id]['ego'] = True
+                    self.scenario_database[valid_scene_idx][cav_id]['ego'] = True
                     if not self.len_record:
                         self.len_record.append(len(timestamps))
                     else:
                         prev_last = self.len_record[-1]
                         self.len_record.append(prev_last + len(timestamps))
                 else:
-                    self.scenario_database[i][cav_id]['ego'] = False
+                    self.scenario_database[valid_scene_idx][cav_id]['ego'] = False
+
+            valid_scene_idx += 1
 
     def retrieve_base_data(self, idx, cur_ego_pose_flag=True):
         """

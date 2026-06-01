@@ -98,7 +98,7 @@ def inference_early_fusion(batch_data, model, dataset, epoch):
 
 #CooperTrim autonet
 # def inference_intermediate_fusion(batch_data, model, dataset):
-def inference_intermediate_fusion(batch_data, model, dataset, epoch):
+def inference_intermediate_fusion(batch_data, model, dataset, epoch=0):
     """
     Model inference for early fusion.
 

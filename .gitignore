@@ -1,0 +1,11 @@
+.vscode/
+*.egg-info/
+__pycache__/
+*.py[cod]
+*.so
+build/
+dist/
+.DS_Store
+Segmentation_OPV2V/opv2v/opencood/checkpoints_test/
+Segmentation_OPV2V/opv2v/opencood/ckpt/
+Segmentation_OPV2V/opv2v/opencood/ckpt_st/

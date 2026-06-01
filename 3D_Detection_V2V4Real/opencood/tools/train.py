@@ -50,7 +50,7 @@ def main():
     ## Added for IOU
     opts = argparse.Namespace(
         #CooperTrim train
-        model_dir     = r"/data/HangQiu/proj/AutoNetSelection/v2vr_det_cobevt_autonet",
+        model_dir     = "/path/to/your/checkpoint",
         fusion_method = 'intermediate',
         global_sort_detections = False
     )
