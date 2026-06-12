@@ -33,7 +33,7 @@ COOPERTRIM adaptively requests data based on scene complexity. Dynamic objects t
 
 ### Data Preparation
 
-**OPV2V:** Download from [UCLA BOX](https://ucla.app.box.com/v/UCLA-MobilityLab-OPV2V). For large files, use the chunked downloads and merge:
+**Download OPV2V:** For large files, use the chunked downloads and merge:
 ```bash
 mkdir -p train && unzip 'train_*.zip' -d train
 ```
@@ -52,9 +52,7 @@ OPV2V/
 > rsync -a additional/test/     OPV2V/test/
 > ```
 
-See [our website](https://mobility-lab.seas.ucla.edu/opv2v/) for dataset details.
-
-**V2V4Real:** Download from the [V2V4Real website](https://research.seas.ucla.edu/mobility-lab/v2v4real/) (OPV2V format). Organize as:
+**Download V2V4Real:** Organize as:
 ```
 v2v4real/
 ├── train/
